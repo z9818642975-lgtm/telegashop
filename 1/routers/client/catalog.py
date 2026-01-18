@@ -1,0 +1,23 @@
+from aiogram import Router, F
+from aiogram.types import Message
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from bot.models.user import User
+from bot.services.catalog_service import show_catalog
+
+router = Router(name="client_catalog")
+
+
+# ❌ DISABLED (text-based handler)
+async def catalog(
+    message: Message,
+    *,
+    session: AsyncSession,
+    user: User,
+) -> None:
+    await show_catalog(
+        message=message,
+        session=session,
+        user=user,
+    )
+

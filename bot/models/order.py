@@ -1,20 +1,54 @@
-from __future__ import annotations
-from sqlalchemy import Integer, String, DateTime, ForeignKey, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from datetime import datetime
+from sqlalchemy import BigInteger, DateTime, Enum, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
-from bot.core.db import Base
+
+from bot.db.base import Base
+from bot.models.enums import OrderStatus
+
 
 class Order(Base):
     __tablename__ = "orders"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    client_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
-    operator_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id"), nullable=True)
-    shift_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("operator_shifts.id"), nullable=True)
-    status: Mapped[str] = mapped_column(String, index=True, default="NEW")
-    delivery_method: Mapped[str] = mapped_column(String)  # COURIER / PICKUP
-    pickup_address_snapshot: Mapped[str | None] = mapped_column(Text, nullable=True)
-    bank_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    bank_account_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("bank_accounts.id"), nullable=True)
-    delivery_fee: Mapped[int] = mapped_column(Integer, default=0)
-    created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now())
-    updated_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    id: Mapped[int] = mapped_column(
+        BigInteger,
+        primary_key=True,
+    )
+
+    # 🔑 telegram user id (FK → users.tg_id)
+    client_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("users.tg_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+    status: Mapped[OrderStatus] = mapped_column(
+        Enum(OrderStatus, name="orderstatus"),
+        nullable=False,
+        server_default=OrderStatus.NEW,
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        server_default=func.now(),
+    )
+
+    # ============================
+    # RELATIONS
+    # ============================
+
+    items: Mapped[list["OrderItem"]] = relationship(
+        "OrderItem",
+        back_populates="order",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+
+    payment: Mapped["Payment | None"] = relationship(
+        "Payment",
+        back_populates="order",
+        uselist=False,
+        lazy="selectin",
+    )

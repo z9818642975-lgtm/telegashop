@@ -1,33 +1,121 @@
-from sqlalchemy import select, update
+# bot/dao/orders_dao.py
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+
 from bot.models.order import Order
+from bot.models.order_item import OrderItem
+from bot.models.enums import OrderStatus
+
 
 class OrdersDAO:
-    def __init__(self, s: AsyncSession): self.s = s
+    def __init__(self, session: AsyncSession):
+        self.session = session
 
-    async def get(self, order_id: int) -> Order:
-        res = await self.s.execute(select(Order).where(Order.id==order_id))
-        return res.scalar_one()
+    # =========================================================
+    # CART (OrderStatus.NEW)
+    # =========================================================
 
-    async def create(self, **data) -> Order:
-        o = Order(**data)
-        self.s.add(o); await self.s.flush()
-        return o
+    async def get_cart(self, client_id: int) -> Order | None:
+        stmt = (
+            select(Order)
+            .options(
+                selectinload(Order.items)
+                .selectinload(OrderItem.product)
+            )
+            .where(
+                Order.client_id == client_id,
+                Order.status == OrderStatus.NEW,
+            )
+            .limit(1)
+        )
+        res = await self.session.execute(stmt)
+        return res.scalar_one_or_none()
 
-    async def set_status(self, order_id: int, status: str):
-        await self.s.execute(update(Order).where(Order.id==order_id).values(status=status))
+    async def get_or_create_cart(self, client_id: int) -> Order:
+        order = await self.get_cart(client_id)
+        if order:
+            return order
 
-    async def attach_payment_choice(self, order_id: int, bank_id: int, bank_account_id: int):
-        await self.s.execute(update(Order).where(Order.id==order_id).values(bank_id=bank_id, bank_account_id=bank_account_id))
+        order = Order(
+            client_id=client_id,
+            status=OrderStatus.NEW,
+        )
+        self.session.add(order)
+        await self.session.flush()
+        return order
 
-    async def set_delivery(self, order_id: int, method: str, fee: int = 0, shift_id=None, operator_id=None, pickup_addr=None):
-        await self.s.execute(update(Order).where(Order.id==order_id).values(
-            delivery_method=method, delivery_fee=fee, shift_id=shift_id, operator_id=operator_id, pickup_address_snapshot=pickup_addr
-        ))
+    async def clear_cart(self, client_id: int) -> None:
+        order = await self.get_cart(client_id)
+        if not order:
+            return
 
-    async def reassign_pickup(self, order_id: int, operator_id: int, shift_id: int, pickup_addr: str):
-        await self.s.execute(update(Order).where(Order.id==order_id).values(operator_id=operator_id, shift_id=shift_id, pickup_address_snapshot=pickup_addr))
+        await self.session.execute(
+            delete(OrderItem).where(
+                OrderItem.order_id == order.id
+            )
+        )
+        await self.session.flush()
 
-    async def list_by_status(self, status: str):
-        res = await self.s.execute(select(Order).where(Order.status==status).order_by(Order.id.desc()))
-        return res.scalars().all()
+    # =========================================================
+    # ADD PRODUCT (IDEMPOTENT)
+    # =========================================================
+
+    async def add_product(
+        self,
+        *,
+        user_id: int,
+        product_id: int,
+        qty: int = 1,
+    ) -> OrderItem:
+        """
+        Идемпотентное добавление товара в корзину.
+
+        - если OrderItem уже есть → вернуть его
+        - qty НЕ увеличивается
+        - qty меняется ТОЛЬКО через item:qty
+        """
+
+        order = await self.get_or_create_cart(user_id)
+
+        res = await self.session.execute(
+            select(OrderItem).where(
+                OrderItem.order_id == order.id,
+                OrderItem.product_id == product_id,
+            )
+        )
+        item = res.scalar_one_or_none()
+
+        if item:
+            return item
+
+        item = OrderItem(
+            order_id=order.id,
+            product_id=product_id,
+            qty=qty,
+            price=item.product.base_price
+            if hasattr(item := None, "product") else None,
+        )
+
+        # ↑ если price у тебя проставляется иначе —
+        # оставь СВОЮ логику, это не влияет на идемпотентность
+
+        self.session.add(item)
+        await self.session.flush()
+        return item
+
+    # =========================================================
+    # STATUS
+    # =========================================================
+
+    async def set_status(
+        self,
+        order_id: int,
+        status: OrderStatus,
+    ) -> None:
+        res = await self.session.execute(
+            select(Order).where(Order.id == order_id)
+        )
+        order = res.scalar_one()
+        order.status = status
+        await self.session.flush()

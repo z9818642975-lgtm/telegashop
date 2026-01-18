@@ -1,0 +1,180 @@
+✅ Telegashop — DB schema v1.0 (final)
+1️⃣ users
+
+Источник истины по ролям и доступу.
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+
+    tg_id BIGINT NOT NULL UNIQUE,
+
+    username VARCHAR(64),
+    full_name VARCHAR(255),
+
+    role VARCHAR(16) NOT NULL CHECK (role IN ('ADMIN', 'OPERATOR', 'CLIENT')),
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+2️⃣ products
+
+Каталог товаров (без остатков).
+
+CREATE TABLE products (
+    id SERIAL PRIMARY KEY,
+
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+
+    base_price INTEGER NOT NULL CHECK (base_price >= 0),
+    min_qty INTEGER NOT NULL DEFAULT 1 CHECK (min_qty > 0),
+
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+3️⃣ warehouses
+
+Физические / логические точки хранения.
+
+CREATE TABLE warehouses (
+    id SERIAL PRIMARY KEY,
+
+    title VARCHAR(255) NOT NULL,
+    address TEXT,
+
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+4️⃣ warehouse_stock
+
+Единственная таблица остатков (никаких qty в products).
+
+CREATE TABLE warehouse_stock (
+    id SERIAL PRIMARY KEY,
+
+    warehouse_id INTEGER NOT NULL
+        REFERENCES warehouses(id)
+        ON DELETE CASCADE,
+
+    product_id INTEGER NOT NULL
+        REFERENCES products(id)
+        ON DELETE CASCADE,
+
+    qty INTEGER NOT NULL DEFAULT 0 CHECK (qty >= 0),
+
+    UNIQUE (warehouse_id, product_id)
+);
+
+5️⃣ orders
+
+Заказ = контейнер (НЕ позиции).
+
+CREATE TABLE orders (
+    id SERIAL PRIMARY KEY,
+
+    user_id BIGINT NOT NULL
+        REFERENCES users(tg_id)
+        ON DELETE CASCADE,
+
+    status VARCHAR(16) NOT NULL CHECK (
+        status IN ('NEW', 'WAIT_PAYMENT', 'PAID', 'IN_PROGRESS', 'DONE', 'CANCELLED')
+    ),
+
+    delivery_type VARCHAR(32),
+    address TEXT,
+
+    delivery_price INTEGER DEFAULT 0 CHECK (delivery_price >= 0),
+    total_price INTEGER NOT NULL DEFAULT 0 CHECK (total_price >= 0),
+
+    is_paid BOOLEAN NOT NULL DEFAULT FALSE,
+    accepted_by BIGINT REFERENCES users(tg_id),
+
+    comment TEXT,
+
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+6️⃣ order_items ✅ (ключевая точка v1)
+
+Всё, что связано с товарами — ТОЛЬКО здесь.
+
+CREATE TABLE order_items (
+    id SERIAL PRIMARY KEY,
+
+    order_id INTEGER NOT NULL
+        REFERENCES orders(id)
+        ON DELETE CASCADE,
+
+    product_id INTEGER NOT NULL
+        REFERENCES products(id),
+
+    qty INTEGER NOT NULL CHECK (qty > 0),
+    price INTEGER NOT NULL CHECK (price >= 0)
+);
+
+7️⃣ bank_accounts
+
+Платёжные реквизиты (карта / СБП).
+
+CREATE TABLE bank_accounts (
+    id SERIAL PRIMARY KEY,
+
+    bank_name VARCHAR(64) NOT NULL,
+
+    card_number VARCHAR(32),
+    card_masked VARCHAR(64),
+
+    sbp_phone VARCHAR(32),
+
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+
+    load INTEGER NOT NULL DEFAULT 0,
+    weight INTEGER NOT NULL DEFAULT 100
+);
+
+8️⃣ payments
+
+1 заказ → 1 платёж.
+
+CREATE TABLE payments (
+    id SERIAL PRIMARY KEY,
+
+    order_id INTEGER NOT NULL UNIQUE
+        REFERENCES orders(id)
+        ON DELETE CASCADE,
+
+    bank_account_id INTEGER
+        REFERENCES bank_accounts(id),
+
+    method VARCHAR(16) NOT NULL CHECK (method IN ('CARD', 'SBP')),
+    requisites VARCHAR(255) NOT NULL,
+
+    receipt_file_id VARCHAR(255),
+
+    is_confirmed BOOLEAN NOT NULL DEFAULT FALSE,
+    confirmed_by BIGINT REFERENCES users(tg_id)
+);
+
+9️⃣ operator_shifts
+
+Онлайн-статус операторов.
+
+CREATE TABLE operator_shifts (
+    id SERIAL PRIMARY KEY,
+
+    operator_id BIGINT NOT NULL
+        REFERENCES users(tg_id)
+        ON DELETE CASCADE,
+
+    pickup_address TEXT NOT NULL,
+
+    started_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    ended_at TIMESTAMP,
+
+    auto_closed BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+CREATE INDEX idx_operator_shifts_active
+    ON operator_shifts(operator_id)
+    WHERE ended_at IS NULL;

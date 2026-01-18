@@ -1,0 +1,59 @@
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+from bot.constants.callbacks import CB
+
+
+def operator_order_kb(order_id: int) -> InlineKeyboardMarkup:
+    """
+    Р вЂР В°Р В·Р С•Р Р†Р В°РЎРЏ Р С”Р В°РЎР‚РЎвЂљР С•РЎвЂЎР С”Р В° Р В·Р В°Р С”Р В°Р В·Р В° (Р Т‘Р С• Р С–Р С•РЎвЂљР С•Р Р†Р Р…Р С•РЎРѓРЎвЂљР С‘)
+    """
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="РІСљвЂ¦ Р СџРЎР‚Р С‘Р Р…РЎРЏРЎвЂљРЎРЉ РЎвЂЎР ВµР С”",
+                    callback_data=CB.OP_CHECK_ACCEPT.format(id=order_id),
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="СЂСџвЂќв„ў Р СњР В°Р В·Р В°Р Т‘",
+                    callback_data="op:orders",
+                )
+            ],
+        ]
+    )
+
+
+def ready_pickup_kb(order_id: int) -> InlineKeyboardMarkup:
+    """
+    Р РЋР В°Р СР С•Р Р†РЎвЂ№Р Р†Р С•Р В· РІвЂ вЂ™ СЂСџвЂњВ¦ Р вЂ”Р В°Р С”Р В°Р В· Р С–Р С•РЎвЂљР С•Р Р†
+    """
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="СЂСџвЂњВ¦ Р вЂ”Р В°Р С”Р В°Р В· Р С–Р С•РЎвЂљР С•Р Р†",
+                    callback_data=f"op:ready:{order_id}",
+                )
+            ]
+        ]
+    )
+
+
+def sent_kb(order_id: int) -> InlineKeyboardMarkup:
+    """
+    Р Р€Р Р…Р С‘Р Р†Р ВµРЎР‚РЎРѓР В°Р В»РЎРЉР Р…Р В°РЎРЏ Р С”Р Р…Р С•Р С—Р С”Р В°:
+    - РЎРѓР В°Р СР С•Р Р†РЎвЂ№Р Р†Р С•Р В· РІвЂ вЂ™ Р’В«Р СџР ВµРЎР‚Р ВµР Т‘Р В°Р Р… Р С”Р В»Р С‘Р ВµР Р…РЎвЂљРЎС“Р’В»
+    - Р Т‘Р С•РЎРѓРЎвЂљР В°Р Р†Р С”Р В° РІвЂ вЂ™ Р’В«Р СџР ВµРЎР‚Р ВµР Т‘Р В°Р Р… Р С”РЎС“РЎР‚РЎРЉР ВµРЎР‚РЎС“Р’В»
+    """
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="СЂСџС™С™ Р СџР ВµРЎР‚Р ВµР Т‘Р В°Р Р…",
+                    callback_data=f"op:sent:{order_id}",
+                )
+            ]
+        ]
+    )

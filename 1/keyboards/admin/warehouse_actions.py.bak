@@ -1,0 +1,34 @@
+# bot/keyboards/warehouse_actions.py
+
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+
+def warehouse_actions_kb(warehouse_id: int) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="РЎР‚РЎСџРІР‚СљР’В¦ Р В РЎС›Р В РЎвЂўР В Р вЂ Р В Р’В°Р РЋР вЂљР РЋРІР‚в„– Р В Р вЂ¦Р В Р’В° Р РЋР С“Р В РЎвЂќР В Р’В»Р В Р’В°Р В РўвЂР В Р’Вµ",
+                    callback_data=f"admin:wh:{warehouse_id}:products",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="РЎР‚РЎСџРІР‚СњР С“ Р В РЎСџР В Р’ВµР РЋР вЂљР В Р’ВµР В РЎВР В Р’ВµР РЋР С“Р РЋРІР‚С™Р В РЎвЂР РЋРІР‚С™Р РЋР Р‰ Р РЋРІР‚С™Р В РЎвЂўР В Р вЂ Р В Р’В°Р РЋР вЂљР РЋРІР‚в„–",
+                    callback_data=f"admin:wh:{warehouse_id}:move",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="Р Р†РЎСљР Р‰ Р В РІР‚СњР В Р’ВµР В Р’В°Р В РЎвЂќР РЋРІР‚С™Р В РЎвЂР В Р вЂ Р В РЎвЂР РЋР вЂљР В РЎвЂўР В Р вЂ Р В Р’В°Р РЋРІР‚С™Р РЋР Р‰ Р РЋР С“Р В РЎвЂќР В Р’В»Р В Р’В°Р В РўвЂ",
+                    callback_data=f"admin:wh:{warehouse_id}:disable",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="Р Р†Р’В¬РІР‚В¦Р С—РЎвЂР РЏ Р В РЎСљР В Р’В°Р В Р’В·Р В Р’В°Р В РўвЂ",
+                    callback_data="admin:admin:warehouses",
+                ),
+            ],
+        ]
+    )

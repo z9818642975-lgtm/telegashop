@@ -1,0 +1,2 @@
+C:\Users\1\project\docker-compose.yml
+C:\Users\1\project\seed.py

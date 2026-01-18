@@ -7,6 +7,7 @@ down_revision = None
 branch_labels = None
 depends_on = None
 
+
 def upgrade():
     op.create_table(
         "users",
@@ -32,10 +33,13 @@ def upgrade():
 
     op.create_table(
         "products",
-        sa.Column("id", sa.Integer, primary_key=True),
-        sa.Column("title", sa.String, nullable=False),
-        sa.Column("is_active", sa.Boolean, server_default="true"),
-        sa.Column("min_qty", sa.Integer, server_default="5"),
+        sa.Column("id", sa.Integer(), primary_key=True),
+        sa.Column("sku", sa.String(), nullable=False, unique=True),
+        sa.Column("name", sa.String(), nullable=False),
+        sa.Column("description", sa.Text()),
+        sa.Column("base_price", sa.Integer(), nullable=False),
+        sa.Column("min_qty", sa.Integer(), nullable=False),
+        sa.Column("is_active", sa.Boolean(), server_default="true"),
     )
 
     op.create_table(
@@ -152,6 +156,7 @@ def upgrade():
         sa.Column("warnings_count", sa.Integer, server_default="0"),
     )
 
+
 def downgrade():
     op.drop_table("operator_sla_stats")
     op.drop_table("restock_orders")
@@ -166,3 +171,4 @@ def downgrade():
     op.drop_table("products")
     op.drop_table("operator_shifts")
     op.drop_table("users")
+

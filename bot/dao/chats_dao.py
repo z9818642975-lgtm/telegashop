@@ -1,2 +1,0 @@
-class ChatsDAO:
-    pass

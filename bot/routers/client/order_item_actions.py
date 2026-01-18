@@ -1,0 +1,85 @@
+# bot/routers/client/order_item_actions.py
+from aiogram import Router, F
+
+# bot/routers/client/order_item_actions.py
+from aiogram import Router, F
+
+
+from aiogram.types import CallbackQuery
+
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
+
+
+
+
+from bot.dao.orders_dao import OrdersDAO
+
+
+from bot.dao.order_items import OrderItemDAO
+
+
+from bot.routers.client.catalog import render_catalog
+
+
+
+
+
+router = Router(name="client_item_actions")
+
+
+
+
+
+@router.callback_query(F.data.startswith("qty:"))
+
+
+async def set_qty(cb: CallbackQuery, session: AsyncSession, user):
+
+
+    _, product_id, qty = cb.data.split(":")
+
+
+    product_id = int(product_id)
+
+
+    qty = int(qty)
+
+
+
+
+
+    order = await OrdersDAO(session).get_active(user.id)
+
+
+    if not order:
+
+
+        return
+
+
+
+
+
+    item = await OrderItemsDAO(session).get_or_create(order.id, product_id)
+
+
+    item.qty = qty
+
+
+    await session.commit()
+
+
+
+
+
+    await render_catalog(cb.message, session)
+
+
+
+
+
+
+
+

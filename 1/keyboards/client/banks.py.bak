@@ -1,0 +1,29 @@
+# bot/keyboards/client/banks.py
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+
+def banks_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="СЂСџРЏВ¦ Р РЋР В±Р ВµРЎР‚",
+                    callback_data="bank:sber",
+                ),
+                InlineKeyboardButton(
+                    text="СЂСџРЏВ¦ Р Сћ-Р вЂР В°Р Р…Р С”",
+                    callback_data="bank:tinkoff",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="СЂСџРЏВ¦ Р С’Р В»РЎРЉРЎвЂћР В°",
+                    callback_data="bank:alfa",
+                ),
+                InlineKeyboardButton(
+                    text="РІС™РЋ Р РЋР вЂР Сџ",
+                    callback_data="bank:sbp",
+                ),
+            ],
+        ]
+    )

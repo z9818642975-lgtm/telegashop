@@ -1,0 +1,248 @@
+from __future__ import annotations
+
+from aiogram import Router, F
+from aiogram.types import Message, CallbackQuery
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from bot.filters.role import RoleFilter
+from bot.constants.callbacks import CB
+
+from bot.dao.users_dao import UsersDAO
+from bot.dao.products_dao import ProductsDAO
+from bot.dao.warehouses_dao import WarehousesDAO
+from bot.dao.orders_dao import OrdersDAO
+from bot.dao.payment_dao import PaymentDAO
+from bot.dao.statistics_dao import StatisticsDAO
+
+from bot.models.enums import OrderStatus
+
+from bot.keyboards.admin.panel import admin_panel_kb
+from bot.keyboards.admin.products import products_kb
+from bot.keyboards.admin.warehouses import warehouses_kb
+from bot.keyboards.admin.operators import operators_kb
+from bot.keyboards.admin.payments import banks_kb
+from bot.keyboards.admin.orders import admin_orders_kb
+
+router = Router(name="admin")
+
+# ============================================================
+# ENTRY
+# ============================================================
+
+# вќЊ DISABLED (admin/operator text handler)
+async def admin_panel(message: Message):
+    await message.answer(
+        "Р РЋР вЂљР РЋРЎСџР Р†Р вЂљР’ВР Р†Р вЂљР’В Р В Р’В Р РЋРІР‚в„ўР В Р’В Р СћРІР‚ВР В Р’В Р РЋР’ВР В Р’В Р РЋРІР‚ВР В Р’В Р В РІР‚В¦-Р В Р’В Р РЋРІР‚вЂќР В Р’В Р вЂ™Р’В°Р В Р’В Р В РІР‚В¦Р В Р’В Р вЂ™Р’ВµР В Р’В Р вЂ™Р’В»Р В Р Р‹Р В Р вЂ°",
+        reply_markup=admin_panel_kb(),
+    )
+
+# ============================================================
+# PRODUCTS
+# ============================================================
+
+@router.callback_query(RoleFilter("admin"), F.data == CB.ADMIN_PRODUCTS)
+async def admin_products(call: CallbackQuery, session: AsyncSession | None = None):
+    products = await ProductsDAO.list_all(session)
+
+    await call.message.edit_text(
+        "Р РЋР вЂљР РЋРЎСџР Р†Р вЂљРЎС™Р вЂ™Р’В¦ Р В Р’В Р РЋРЎвЂєР В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В Р В Р’В Р вЂ™Р’В°Р В Р Р‹Р В РІР‚С™Р В Р Р‹Р Р†Р вЂљРІвЂћвЂ“",
+        reply_markup=products_kb(products),
+    )
+    await call.answer()
+
+@router.callback_query(RoleFilter("admin"), F.data.startswith("admin:admin:product:toggle"))
+async def admin_product_toggle(call: CallbackQuery, session: AsyncSession | None = None):
+    product_id = int(call.data.split(":")[-1])
+    await ProductsDAO.toggle_active(session, product_id)
+    await session.commit()
+    await call.answer("OK")
+
+# ============================================================
+# WAREHOUSES
+# ============================================================
+
+@router.callback_query(RoleFilter("admin"), F.data == CB.ADMIN_WAREHOUSES)
+async def admin_warehouses(call: CallbackQuery, session: AsyncSession | None = None):
+    dao = WarehousesDAO(session)
+    warehouses = await dao.list_all()
+    await call.message.edit_text(
+        "Р РЋР вЂљР РЋРЎСџР В Р РЏР вЂ™Р’В¬ Р В Р’В Р В Р вЂ№Р В Р’В Р РЋРІР‚СњР В Р’В Р вЂ™Р’В»Р В Р’В Р вЂ™Р’В°Р В Р’В Р СћРІР‚ВР В Р Р‹Р Р†Р вЂљРІвЂћвЂ“",
+        reply_markup=warehouses_kb(warehouses),
+    )
+    await call.answer()
+
+@router.callback_query(RoleFilter("admin"), F.data.startswith("admin:admin:warehouse:move"))
+async def admin_warehouse_move(call: CallbackQuery, session: AsyncSession | None = None):
+    _, _, from_id, to_id, product_id, qty = call.data.split(":")
+    dao = WarehousesDAO(session)
+    await dao.move(
+        from_warehouse_id=int(from_id),
+        to_warehouse_id=int(to_id),
+        product_id=int(product_id),
+        quantity=int(qty),
+    )
+    await session.commit()
+    await call.answer("Р В Р’В Р РЋРЎСџР В Р’В Р вЂ™Р’ВµР В Р Р‹Р В РІР‚С™Р В Р’В Р вЂ™Р’ВµР В Р’В Р РЋР’ВР В Р’В Р вЂ™Р’ВµР В Р Р‹Р Р†Р вЂљР’В°Р В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р’В Р РЋРІР‚Сћ")
+
+# ============================================================
+# OPERATORS
+# ============================================================
+
+@router.callback_query(RoleFilter("admin"), F.data == CB.ADMIN_OPERATORS)
+async def admin_operators(call: CallbackQuery, session: AsyncSession | None = None):
+    users = UsersDAO(session)
+    operators = await users.list_operators()
+    await call.message.edit_text(
+        "Р РЋР вЂљР РЋРЎСџР Р†Р вЂљР’ВР вЂ™Р’В· Р В Р’В Р РЋРІР‚С”Р В Р’В Р РЋРІР‚вЂќР В Р’В Р вЂ™Р’ВµР В Р Р‹Р В РІР‚С™Р В Р’В Р вЂ™Р’В°Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р РЋРІР‚СћР В Р Р‹Р В РІР‚С™Р В Р Р‹Р Р†Р вЂљРІвЂћвЂ“",
+        reply_markup=operators_kb(operators),
+    )
+    await call.answer()
+
+@router.callback_query(RoleFilter("admin"), F.data.startswith("admin:admin:operator:toggle"))
+async def admin_operator_toggle(call: CallbackQuery, session: AsyncSession | None = None):
+    operator_id = int(call.data.split(":")[-1])
+    users = UsersDAO(session)
+    await users.toggle_active(operator_id)
+    await session.commit()
+    await call.answer("OK")
+
+# ============================================================
+# BANKS / PAYMENTS
+# ============================================================
+
+@router.callback_query(RoleFilter("admin"), F.data == "admin:admin:banks")
+async def admin_banks(call: CallbackQuery, session: AsyncSession | None = None):
+    dao = PaymentDAO(session)
+    banks = await dao.list_requisites()
+    await call.message.edit_text(
+        "Р РЋР вЂљР РЋРЎСџР Р†Р вЂљРІвЂћСћР РЋРІР‚вЂњ Р В Р’В Р вЂ™Р’В Р В Р’В Р вЂ™Р’ВµР В Р’В Р РЋРІР‚СњР В Р’В Р В РІР‚В Р В Р’В Р РЋРІР‚ВР В Р’В Р вЂ™Р’В·Р В Р’В Р РЋРІР‚ВР В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р Р†Р вЂљРІвЂћвЂ“",
+        reply_markup=banks_kb(banks),
+    )
+    await call.answer()
+
+@router.callback_query(RoleFilter("admin"), F.data.startswith("admin:admin:bank:toggle"))
+async def admin_bank_toggle(call: CallbackQuery, session: AsyncSession | None = None):
+    bank_id = int(call.data.split(":")[-1])
+    dao = PaymentDAO(session)
+    await dao.toggle_bank(bank_id)
+    await session.commit()
+    await call.answer("OK")
+
+# ============================================================
+# ORDERS
+# ============================================================
+
+@router.callback_query(RoleFilter("admin"), F.data == "admin:admin:orders")
+async def admin_orders(call: CallbackQuery, session: AsyncSession | None = None):
+    dao = OrdersDAO(session)
+    orders = await dao.list_recent(limit=20)
+    await call.message.edit_text(
+        "Р РЋР вЂљР РЋРЎСџР Р†Р вЂљРЎС™Р Р†Р вЂљРІвЂћвЂ“ Р В Р’В Р Р†Р вЂљРІР‚СњР В Р’В Р вЂ™Р’В°Р В Р’В Р РЋРІР‚СњР В Р’В Р вЂ™Р’В°Р В Р’В Р вЂ™Р’В·Р В Р Р‹Р Р†Р вЂљРІвЂћвЂ“",
+        reply_markup=admin_orders_kb(orders),
+    )
+    await call.answer()
+
+@router.callback_query(RoleFilter("admin"), F.data.startswith("admin:admin:order:force"))
+async def admin_force_order(call: CallbackQuery, session: AsyncSession | None = None):
+    _, _, order_id, status = call.data.split(":")
+    dao = OrdersDAO(session)
+    await dao.force_status(
+        order_id=int(order_id),
+        status=OrderStatus(status),
+    )
+    await session.commit()
+    await call.answer("Р В Р’В Р В Р вЂ№Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р вЂ™Р’В°Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р РЋРІР‚СљР В Р Р‹Р В РЎвЂњ Р В Р’В Р РЋРІР‚ВР В Р’В Р вЂ™Р’В·Р В Р’В Р РЋР’ВР В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р Р‹Р Р†Р вЂљР’ВР В Р’В Р В РІР‚В¦")
+
+# ============================================================
+# PAYMENTS ACTIONS
+# ============================================================
+
+@router.callback_query(RoleFilter("admin"), F.data.startswith("admin:admin:payment:approve"))
+async def admin_payment_approve(call: CallbackQuery, session: AsyncSession | None = None):
+    payment_id = int(call.data.split(":")[-1])
+    payments = PaymentDAO(session)
+    orders = OrdersDAO(session)
+
+    payment = await payments.get(payment_id)
+    await payments.approve(payment_id)
+    await orders.mark_paid(payment.order_id)
+
+    await session.commit()
+    await call.answer("Р В Р’В Р РЋРЎСџР В Р’В Р вЂ™Р’В»Р В Р’В Р вЂ™Р’В°Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р Р†Р вЂљР’ВР В Р’В Р вЂ™Р’В¶ Р В Р’В Р РЋРІР‚вЂќР В Р’В Р РЋРІР‚СћР В Р’В Р СћРІР‚ВР В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р В РІР‚В Р В Р’В Р вЂ™Р’ВµР В Р Р‹Р В РІР‚С™Р В Р’В Р вЂ™Р’В¶Р В Р’В Р СћРІР‚ВР В Р Р‹Р Р†Р вЂљР’ВР В Р’В Р В РІР‚В¦")
+
+@router.callback_query(RoleFilter("admin"), F.data.startswith("admin:admin:payment:reject"))
+async def admin_payment_reject(call: CallbackQuery, session: AsyncSession | None = None):
+    payment_id = int(call.data.split(":")[-1])
+    payments = PaymentDAO(session)
+    await payments.reject(payment_id, reason="Р В Р’В Р РЋРІР‚С”Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р РЋРІР‚СњР В Р’В Р вЂ™Р’В»Р В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В¦Р В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р’В Р РЋРІР‚Сћ Р В Р’В Р вЂ™Р’В°Р В Р’В Р СћРІР‚ВР В Р’В Р РЋР’ВР В Р’В Р РЋРІР‚ВР В Р’В Р В РІР‚В¦Р В Р’В Р РЋРІР‚ВР В Р Р‹Р В РЎвЂњР В Р Р‹Р Р†Р вЂљРЎв„ўР В Р Р‹Р В РІР‚С™Р В Р’В Р вЂ™Р’В°Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р РЋРІР‚СћР В Р Р‹Р В РІР‚С™Р В Р’В Р РЋРІР‚СћР В Р’В Р РЋР’В")
+    await session.commit()
+    await call.answer("Р В Р’В Р РЋРІР‚С”Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р РЋРІР‚СњР В Р’В Р вЂ™Р’В»Р В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В¦Р В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р’В Р РЋРІР‚Сћ")
+
+# ============================================================
+# STATISTICS
+# ============================================================
+
+@router.callback_query(F.data == "admin:admin:stats:week")
+async def stats_week(call: CallbackQuery, session: AsyncSession | None = None):
+    dao = StatisticsDAO(session)
+    data = await dao.period_summary(days=7)
+    await call.message.edit_text(
+        "Р РЋР вЂљР РЋРЎСџР Р†Р вЂљРЎС™Р В РІР‚В° <b>Р В Р’В Р РЋРЎС™Р В Р’В Р вЂ™Р’ВµР В Р’В Р СћРІР‚ВР В Р’В Р вЂ™Р’ВµР В Р’В Р вЂ™Р’В»Р В Р Р‹Р В Р РЏ</b>\n\n"
+        f"Р РЋР вЂљР РЋРЎСџР Р†Р вЂљРЎС™Р вЂ™Р’В¦ Р В Р’В Р Р†Р вЂљРІР‚СњР В Р’В Р вЂ™Р’В°Р В Р’В Р РЋРІР‚СњР В Р’В Р вЂ™Р’В°Р В Р’В Р вЂ™Р’В·Р В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В : {data['orders_total']}\n"
+        f"Р В Р вЂ Р РЋРЎв„ўР Р†Р вЂљР’В¦ Р В Р’В Р РЋРІР‚С”Р В Р’В Р РЋРІР‚вЂќР В Р’В Р вЂ™Р’В»Р В Р’В Р вЂ™Р’В°Р В Р Р‹Р Р†Р вЂљР Р‹Р В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р’В Р РЋРІР‚Сћ: {data['orders_paid']}\n"
+        f"Р РЋР вЂљР РЋРЎСџР Р†Р вЂљРІвЂћСћР вЂ™Р’В° Р В Р’В Р РЋРІР‚С”Р В Р’В Р вЂ™Р’В±Р В Р’В Р РЋРІР‚СћР В Р Р‹Р В РІР‚С™Р В Р’В Р РЋРІР‚СћР В Р Р‹Р Р†Р вЂљРЎв„ў: {data['revenue']} Р В Р вЂ Р Р†Р вЂљРЎв„ўР В РІР‚В¦\n"
+        f"Р РЋР вЂљР РЋРЎСџР вЂ™Р’В§Р РЋРІР‚Сћ Р В Р’В Р В Р вЂ№Р В Р Р‹Р В РІР‚С™Р В Р’В Р вЂ™Р’ВµР В Р’В Р СћРІР‚ВР В Р’В Р В РІР‚В¦Р В Р’В Р РЋРІР‚ВР В Р’В Р Р†РІР‚С›РІР‚вЂњ Р В Р Р‹Р Р†Р вЂљР Р‹Р В Р’В Р вЂ™Р’ВµР В Р’В Р РЋРІР‚Сњ: {data['avg_check']} Р В Р вЂ Р Р†Р вЂљРЎв„ўР В РІР‚В¦",
+        parse_mode="HTML",
+    )
+    await call.answer()
+
+@router.callback_query(F.data == "admin:admin:stats:month")
+async def stats_month(call: CallbackQuery, session: AsyncSession | None = None):
+    dao = StatisticsDAO(session)
+    data = await dao.period_summary(days=30)
+    await call.message.edit_text(
+        "Р РЋР вЂљР РЋРЎСџР Р†Р вЂљРЎС™Р В РІР‚В° <b>Р В Р’В Р РЋРЎв„ўР В Р’В Р вЂ™Р’ВµР В Р Р‹Р В РЎвЂњР В Р Р‹Р В Р РЏР В Р Р‹Р Р†Р вЂљР’В </b>\n\n"
+        f"Р РЋР вЂљР РЋРЎСџР Р†Р вЂљРЎС™Р вЂ™Р’В¦ Р В Р’В Р Р†Р вЂљРІР‚СњР В Р’В Р вЂ™Р’В°Р В Р’В Р РЋРІР‚СњР В Р’В Р вЂ™Р’В°Р В Р’В Р вЂ™Р’В·Р В Р’В Р РЋРІР‚СћР В Р’В Р В РІР‚В : {data['orders_total']}\n"
+        f"Р В Р вЂ Р РЋРЎв„ўР Р†Р вЂљР’В¦ Р В Р’В Р РЋРІР‚С”Р В Р’В Р РЋРІР‚вЂќР В Р’В Р вЂ™Р’В»Р В Р’В Р вЂ™Р’В°Р В Р Р‹Р Р†Р вЂљР Р‹Р В Р’В Р вЂ™Р’ВµР В Р’В Р В РІР‚В¦Р В Р’В Р РЋРІР‚Сћ: {data['orders_paid']}\n"
+        f"Р РЋР вЂљР РЋРЎСџР Р†Р вЂљРІвЂћСћР вЂ™Р’В° Р В Р’В Р РЋРІР‚С”Р В Р’В Р вЂ™Р’В±Р В Р’В Р РЋРІР‚СћР В Р Р‹Р В РІР‚С™Р В Р’В Р РЋРІР‚СћР В Р Р‹Р Р†Р вЂљРЎв„ў: {data['revenue']} Р В Р вЂ Р Р†Р вЂљРЎв„ўР В РІР‚В¦\n"
+        f"Р РЋР вЂљР РЋРЎСџР вЂ™Р’В§Р РЋРІР‚Сћ Р В Р’В Р В Р вЂ№Р В Р Р‹Р В РІР‚С™Р В Р’В Р вЂ™Р’ВµР В Р’В Р СћРІР‚ВР В Р’В Р В РІР‚В¦Р В Р’В Р РЋРІР‚ВР В Р’В Р Р†РІР‚С›РІР‚вЂњ Р В Р Р‹Р Р†Р вЂљР Р‹Р В Р’В Р вЂ™Р’ВµР В Р’В Р РЋРІР‚Сњ: {data['avg_check']} Р В Р вЂ Р Р†Р вЂљРЎв„ўР В РІР‚В¦",
+        parse_mode="HTML",
+    )
+    await call.answer()
+
+@router.callback_query(F.data == "admin:admin:stats:per_operator")
+async def stats_per_operator(call: CallbackQuery, session: AsyncSession | None = None):
+    dao = StatisticsDAO(session)
+    rows = await dao.per_operator(days=30)
+
+    text = "Р РЋР вЂљР РЋРЎСџР Р†Р вЂљР’ВР вЂ™Р’В¤ <b>Р В Р’В Р РЋРІР‚С”Р В Р’В Р РЋРІР‚вЂќР В Р’В Р вЂ™Р’ВµР В Р Р‹Р В РІР‚С™Р В Р’В Р вЂ™Р’В°Р В Р Р‹Р Р†Р вЂљРЎв„ўР В Р’В Р РЋРІР‚СћР В Р Р‹Р В РІР‚С™Р В Р Р‹Р Р†Р вЂљРІвЂћвЂ“ (30 Р В Р’В Р СћРІР‚ВР В Р’В Р В РІР‚В¦Р В Р’В Р вЂ™Р’ВµР В Р’В Р Р†РІР‚С›РІР‚вЂњ)</b>\n\n"
+    for r in rows:
+        text += f"{r['name']}\n  Р РЋР вЂљР РЋРЎСџР Р†Р вЂљРЎС™Р вЂ™Р’В¦ {r['orders']} | Р РЋР вЂљР РЋРЎСџР Р†Р вЂљРІвЂћСћР вЂ™Р’В° {r['revenue']} Р В Р вЂ Р Р†Р вЂљРЎв„ўР В РІР‚В¦\n"
+
+    await call.message.edit_text(text, parse_mode="HTML")
+    await call.answer()
+
+@router.callback_query(F.data == "admin:admin:stats:per_warehouse")
+async def stats_per_warehouse(call: CallbackQuery, session: AsyncSession | None = None):
+    dao = StatisticsDAO(session)
+    rows = await dao.per_warehouse(days=30)
+
+    text = "Р РЋР вЂљР РЋРЎСџР В Р РЏР вЂ™Р’В¬ <b>Р В Р’В Р В Р вЂ№Р В Р’В Р РЋРІР‚СњР В Р’В Р вЂ™Р’В»Р В Р’В Р вЂ™Р’В°Р В Р’В Р СћРІР‚ВР В Р Р‹Р Р†Р вЂљРІвЂћвЂ“ (30 Р В Р’В Р СћРІР‚ВР В Р’В Р В РІР‚В¦Р В Р’В Р вЂ™Р’ВµР В Р’В Р Р†РІР‚С›РІР‚вЂњ)</b>\n\n"
+    for r in rows:
+        text += f"{r['title']}\n  Р РЋР вЂљР РЋРЎСџР Р†Р вЂљРЎС™Р вЂ™Р’В¦ {r['orders']} | Р РЋР вЂљР РЋРЎСџР Р†Р вЂљРІвЂћСћР вЂ™Р’В° {r['revenue']} Р В Р вЂ Р Р†Р вЂљРЎв„ўР В РІР‚В¦\n"
+
+    await call.message.edit_text(text, parse_mode="HTML")
+    await call.answer()
+
+@router.callback_query(F.data == "admin:admin:stats:graph")
+async def stats_graph(call: CallbackQuery, session: AsyncSession | None = None):
+    dao = StatisticsDAO(session)
+    data = await dao.revenue_timeseries(days=30)
+
+    text = "Р РЋР вЂљР РЋРЎСџР Р†Р вЂљРЎС™Р Р†РІР‚С™Р’В¬ <b>Р В Р’В Р Р†Р вЂљРІвЂћСћР В Р Р‹Р Р†Р вЂљРІвЂћвЂ“Р В Р Р‹Р В РІР‚С™Р В Р Р‹Р РЋРІР‚СљР В Р Р‹Р Р†Р вЂљР Р‹Р В Р’В Р РЋРІР‚СњР В Р’В Р вЂ™Р’В° Р В Р’В Р РЋРІР‚вЂќР В Р’В Р РЋРІР‚Сћ Р В Р’В Р СћРІР‚ВР В Р’В Р В РІР‚В¦Р В Р Р‹Р В Р РЏР В Р’В Р РЋР’В (30 Р В Р’В Р СћРІР‚ВР В Р’В Р В РІР‚В¦Р В Р’В Р вЂ™Р’ВµР В Р’В Р Р†РІР‚С›РІР‚вЂњ)</b>\n\n"
+    for d in data:
+        text += f"{d['date']} Р В Р вЂ Р Р†Р вЂљР’В Р Р†Р вЂљРІвЂћСћ {d['revenue']} Р В Р вЂ Р Р†Р вЂљРЎв„ўР В РІР‚В¦\n"
+
+    await call.message.edit_text(text, parse_mode="HTML")
+    await call.answer()
+

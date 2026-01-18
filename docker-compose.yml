@@ -1,23 +1,74 @@
 services:
+
   postgres:
-    image: postgres:16
+    image: postgres:15
+    container_name: tgshop_postgres
+    restart: always
     environment:
-      POSTGRES_DB: telegashop
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports: ["5432:5432"]
-    volumes: [ "pgdata:/var/lib/postgresql/data" ]
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      TZ: ${TIMEZONE}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7
-    ports: ["6379:6379"]
+    container_name: tgshop_redis
+    restart: always
+    command: >
+      redis-server
+      --requirepass 123456
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "123456", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  loki:
+    image: grafana/loki:2.9.2
+    container_name: tgshop_loki
+    restart: always
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3100/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   bot:
-    build: .
-    env_file: [ .env ]
-    depends_on: [ postgres, redis ]
-    ports: ["8080:8080"]
-    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tgshop_bot
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      loki:
+        condition: service_healthy
+    environment:
+      PYTHONPATH: /app
+    command: python bot/main.py
+    volumes:
+      - .:/app
+    stdin_open: true
+    tty: true
 
 volumes:
-  pgdata:
+  postgres_data:

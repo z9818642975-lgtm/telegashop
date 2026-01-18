@@ -1,0 +1,30 @@
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+from bot.constants.callbacks import CB
+
+
+def profile_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="СЂСџвЂњВ¦ Р СљР С•Р С‘ Р В·Р В°Р С”Р В°Р В·РЎвЂ№",
+                    callback_data="profile:orders",
+                ),
+                InlineKeyboardButton(
+                    text="СЂСџвЂТђ Р В Р ВµРЎвЂћР ВµРЎР‚Р В°Р В»РЎвЂ№",
+                    callback_data="profile:ref",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="СЂСџР‹Сџ Р С™РЎС“Р С—Р С•Р Р…",
+                    callback_data="profile:coupon",
+                ),
+                InlineKeyboardButton(
+                    text="РІВ¬вЂ¦РїС‘РЏ Р СњР В°Р В·Р В°Р Т‘",
+                    callback_data=CB.BACK_MENU,
+                ),
+            ],
+        ]
+    )

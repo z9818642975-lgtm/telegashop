@@ -29,8 +29,8 @@ async def wait_db():
 asyncio.run(wait_db())
 EOF
 
-echo "🧩 Applying migrations (upgrade heads)..."
-alembic upgrade heads
+#echo "🧩 Applying migrations (upgrade heads)..."
+#Salembic upgrade heads
 
 echo "🧩 Starting bot..."
 exec python -m bot.main

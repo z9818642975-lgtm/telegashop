@@ -1,0 +1,30 @@
+# bot/routers/client/delivery_price.py
+from aiogram import Router, F
+
+# bot/routers/client/delivery_price.py
+from aiogram import Router, F
+
+
+from aiogram.types import CallbackQuery
+
+
+
+
+
+router = Router(name="client_delivery_price")
+
+
+
+
+
+@router.callback_query(F.data.startswith("delivery_price:"))
+
+
+async def price(cb: CallbackQuery):
+
+
+    await cb.answer("Р В Р’В¦Р В Р’ВµР В Р вЂ¦Р В Р’В° Р В РўвЂР В РЎвЂўР РЋР С“Р РЋРІР‚С™Р В Р’В°Р В Р вЂ Р В РЎвЂќР В РЎвЂ Р В Р вЂ Р РЋРІР‚в„–Р В Р’В±Р РЋР вЂљР В Р’В°Р В Р вЂ¦Р В Р’В°")
+
+
+
+
