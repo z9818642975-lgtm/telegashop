@@ -18,7 +18,7 @@ def operator_order_kb(order_id: int) -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text="🔙 Назад",
-                    callback_data="op:orders",
+                    callback_data="operator:orders",
                 )
             ],
         ]
@@ -34,7 +34,7 @@ def ready_pickup_kb(order_id: int) -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text="📦 Заказ готов",
-                    callback_data=f"op:ready:{order_id}",
+                    callback_data=f"operator:ready:{order_id}",
                 )
             ]
         ]
@@ -52,7 +52,7 @@ def sent_kb(order_id: int) -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text="🚚 Передан",
-                    callback_data=f"op:sent:{order_id}",
+                    callback_data=f"operator:sent:{order_id}",
                 )
             ]
         ]

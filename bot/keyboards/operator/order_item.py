@@ -6,11 +6,11 @@ def order_item_actions_kb(item_id: int) -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text="🕒 10 минут",
-                    callback_data=f"item:wait:{item_id}",
+                    callback_data=f"client:item:wait:{item_id}",
                 ),
                 InlineKeyboardButton(
                     text="✅ Забрал",
-                    callback_data=f"item:done:{item_id}",
+                    callback_data=f"client:item:done:{item_id}",
                 ),
             ]
         ]

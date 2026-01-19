@@ -23,7 +23,7 @@ def operator_order_kb(order_id: int) -> InlineKeyboardMarkup:
                 ),
                 InlineKeyboardButton(
                     text="🔙 Назад",
-                    callback_data="op:orders",
+                    callback_data="operator:orders",
                 ),
             ],
         ]

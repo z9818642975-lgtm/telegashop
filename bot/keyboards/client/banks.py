@@ -8,21 +8,21 @@ def banks_kb() -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text="🏦 Сбер",
-                    callback_data="bank:sber",
+                    callback_data="client:bank:sber",
                 ),
                 InlineKeyboardButton(
                     text="🏦 Т-Банк",
-                    callback_data="bank:tinkoff",
+                    callback_data="client:bank:tinkoff",
                 ),
             ],
             [
                 InlineKeyboardButton(
                     text="🏦 Альфа",
-                    callback_data="bank:alfa",
+                    callback_data="client:bank:alfa",
                 ),
                 InlineKeyboardButton(
                     text="⚡ СБП",
-                    callback_data="bank:sbp",
+                    callback_data="client:bank:sbp",
                 ),
             ],
         ]

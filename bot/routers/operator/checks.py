@@ -29,7 +29,7 @@ router = Router()
 
 
 
-@router.callback_query(F.data.startswith("op:check:accept"))
+@router.callback_query(F.data.startswith("operator:check:accept"))
 
 
 async def accept(call: CallbackQuery, session: AsyncSession):
@@ -53,7 +53,7 @@ async def accept(call: CallbackQuery, session: AsyncSession):
 
 
 
-@router.callback_query(F.data.startswith("op:check:reject"))
+@router.callback_query(F.data.startswith("operator:check:reject"))
 
 
 async def reject(call: CallbackQuery, session: AsyncSession):

@@ -14,7 +14,7 @@ router = Router(name="client_payment")
 
 @router.callback_query(
     CheckoutFSM.payment,
-    F.data.startswith("pay:"),
+    F.data.startswith("client:pay:"),
 )
 async def choose_payment(
     cb: CallbackQuery,

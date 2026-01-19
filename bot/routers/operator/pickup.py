@@ -14,7 +14,7 @@ router.message.filter(RoleFilter(UserRole.OPERATOR))
 router.callback_query.filter(RoleFilter(UserRole.OPERATOR))
 
 
-@router.callback_query(F.data.startswith("op:ready:"))
+@router.callback_query(F.data.startswith("operator:ready:"))
 async def start_ready(
     call: CallbackQuery,
     state: FSMContext,

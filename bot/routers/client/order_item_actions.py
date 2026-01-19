@@ -32,7 +32,7 @@ router = Router(name="client_item_actions")
 
 
 
-@router.callback_query(F.data.startswith("qty:"))
+@router.callback_query(F.data.startswith("client:qty:"))
 
 
 async def set_qty(cb: CallbackQuery, session: AsyncSession, user):

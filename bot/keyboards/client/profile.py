@@ -9,17 +9,17 @@ def profile_kb() -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text="📦 Мои заказы",
-                    callback_data="profile:orders",
+                    callback_data="client:profile:orders",
                 ),
                 InlineKeyboardButton(
                     text="👥 Рефералы",
-                    callback_data="profile:ref",
+                    callback_data="client:profile:ref",
                 ),
             ],
             [
                 InlineKeyboardButton(
                     text="🎟 Купон",
-                    callback_data="profile:coupon",
+                    callback_data="client:profile:coupon",
                 ),
                 InlineKeyboardButton(
                     text="⬅️ Назад",

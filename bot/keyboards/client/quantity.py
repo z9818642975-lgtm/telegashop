@@ -12,7 +12,7 @@ def quantity_kb(order_item_id: int) -> InlineKeyboardMarkup:
     row1 = [
         InlineKeyboardButton(
             text=str(i),
-            callback_data=f"item:qty:{order_item_id}:{i}"
+            callback_data=f"client:item:qty:{order_item_id}:{i}"
         )
         for i in range(1, 6)
     ]
@@ -21,7 +21,7 @@ def quantity_kb(order_item_id: int) -> InlineKeyboardMarkup:
     row2 = [
         InlineKeyboardButton(
             text=str(i),
-            callback_data=f"item:qty:{order_item_id}:{i}"
+            callback_data=f"client:item:qty:{order_item_id}:{i}"
         )
         for i in range(6, 11)
     ]

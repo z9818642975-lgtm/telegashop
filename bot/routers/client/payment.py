@@ -15,7 +15,7 @@ router = Router(name="client_payment")
 # CHOOSE PAYMENT METHOD (BANK / SBP)
 # =========================================================
 
-@router.callback_query(F.data.startswith("pay:"))
+@router.callback_query(F.data.startswith("client:pay:"))
 async def choose_payment_method(
     cb: CallbackQuery,
     session: AsyncSession,
@@ -33,7 +33,7 @@ async def choose_payment_method(
     # -------------------------
     # BANK (pay:bank:<bank_id>)
     # -------------------------
-    if data.startswith("pay:bank:"):
+    if data.startswith("client:pay:bank:"):
         bank_id = int(data.split(":")[2])
 
         bank = await BankAccountsDAO(session).get_by_id(bank_id)

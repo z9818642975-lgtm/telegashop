@@ -1,45 +1,58 @@
 class CB:
-    # ===== common =====
-    BACK_MENU = "back:menu"
-    BACK_CATALOG = "back:catalog"
+    # =====================================================
+    # COMMON
+    # =====================================================
+    BACK_MENU = "common:back:menu"
+    BACK_CATALOG = "common:back:catalog"
 
-    # ===== catalog =====
+    # =====================================================
+    # CLIENT — CATALOG
+    # =====================================================
     CATALOG_OPEN = "catalog:open"
-    PRODUCT_OPEN = "product:open"      # product:open:<product_id>
-    PRODUCT_ADD = "product:add"        # product:add:<product_id>
+    PRODUCT_OPEN = "client:product:open"     # :<product_id>
+    PRODUCT_ADD = "client:product:add"       # :<product_id>
 
-    # ===== cart =====
-    CART_OPEN = "cart:open"
-    CART_CLEAR = "cart:clear"
-    CART_CHECKOUT = "cart:checkout"
+    # =====================================================
+    # CLIENT — CART
+    # =====================================================
+    CLIENT_CART_OPEN = "client:cart:open"
+    CLIENT_CART_CLEAR = "client:cart:clear"
+    CLIENT_CART_CHECKOUT = "client:cart:checkout"
 
-    # item-level (НЕ enum-шаблоны, а префиксы)
-    ITEM_QTY = "item:qty"              # item:qty:<order_item_id>:<qty>
-    ITEM_REMOVE = "item:remove"        # item:remove:<order_item_id>
+    ITEM_QTY = "item:qty"                     # item:qty:<order_item_id>:<qty>
+    ITEM_REMOVE = "item:remove"               # item:remove:<order_item_id>
 
-    # ===== delivery =====
-    DELIVERY_PICKUP = "delivery:pickup"
-    DELIVERY_COURIER = "delivery:courier"
+    # =====================================================
+    # CLIENT — DELIVERY
+    # =====================================================
+    CLIENT_DELIVERY_PICKUP = "client:delivery:pickup"
+    CLIENT_DELIVERY_COURIER = "client:delivery:courier"
 
-    # ===== payment =====
-    PAY_BANK = "pay:bank"              # pay:bank:<bank_id>
-    PAY_SBP = "pay:sbp"
-    PAYMENT_DONE = "payment:done"
-    PAYMENT_CANCEL = "payment:cancel"
+    # =====================================================
+    # CLIENT — PAYMENT
+    # =====================================================
+    CLIENT_PAY_BANK = "client:pay:bank"               # :<bank_id>
+    CLIENT_PAY_SBP = "client:pay:sbp"
+    CLIENT_PAYMENT_DONE = "client:payment:done"
+    CLIENT_PAYMENT_CANCEL = "client:payment:cancel"
 
-    # ===== operator =====
-    OP_ALIVE = "op:alive"
-    OP_SHIFT_START = "op:shift:start"
-    OP_SHIFT_CONFIRM = "op:shift:confirm"
-    OP_SHIFT_CANCEL = "op:shift:cancel"
-    OP_SHIFT_STOP = "op:shift:stop"
-    OP_SHIFT_EDIT_ADDRESS = "op:shift:edit_address"
+    # =====================================================
+    # OPERATOR
+    # =====================================================
+    OP_ALIVE = "operator:alive"
+    OP_SHIFT_START = "operator:shift:start"
+    OP_SHIFT_CONFIRM = "operator:shift:confirm"
+    OP_SHIFT_CANCEL = "operator:shift:cancel"
+    OP_SHIFT_STOP = "operator:shift:stop"
+    OP_SHIFT_EDIT_ADDRESS = "operator:shift:edit_address"
 
-    OP_CHECK_ACCEPT = "op:order:accept"  # :<order_id>
-    OP_READY = "op:order:ready"          # :<order_id>
-    OP_SENT = "op:order:sent"            # :<order_id>
+    OP_ORDER_ACCEPT = "operator:order:accept"         # :<order_id>
+    OP_ORDER_READY = "operator:order:ready"           # :<order_id>
+    OP_ORDER_SENT = "operator:order:sent"             # :<order_id>
 
-    # ===== admin =====
+    # =====================================================
+    # ADMIN
+    # =====================================================
     ADMIN_PRODUCTS = "admin:products"
     ADMIN_WAREHOUSES = "admin:warehouses"
     ADMIN_OPERATORS = "admin:operators"

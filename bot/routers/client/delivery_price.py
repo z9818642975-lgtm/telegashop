@@ -17,7 +17,7 @@ router = Router(name="client_delivery_price")
 
 
 
-@router.callback_query(F.data.startswith("delivery_price:"))
+@router.callback_query(F.data.startswith("client:delivery_price:"))
 
 
 async def price(cb: CallbackQuery):

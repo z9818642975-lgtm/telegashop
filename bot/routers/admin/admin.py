@@ -40,7 +40,7 @@ async def admin_panel(message: Message):
 # PRODUCTS
 # ============================================================
 
-@router.callback_query(RoleFilter("admin"), F.data == CB.ADMIN_PRODUCTS)
+@router.callback_query(RoleFilter("admin"), F.data.startswith("admin:products"))
 async def admin_products(call: CallbackQuery, session: AsyncSession):
     dao = ProductsDAO(session)
     products = await dao.list_all()
@@ -62,7 +62,7 @@ async def admin_product_toggle(call: CallbackQuery, session: AsyncSession):
 # WAREHOUSES
 # ============================================================
 
-@router.callback_query(RoleFilter("admin"), F.data == CB.ADMIN_WAREHOUSES)
+@router.callback_query(RoleFilter("admin"), F.data.startswith("admin:warehouses"))
 async def admin_warehouses(call: CallbackQuery, session: AsyncSession):
     dao = WarehousesDAO(session)
     warehouses = await dao.list_all()
@@ -89,7 +89,7 @@ async def admin_warehouse_move(call: CallbackQuery, session: AsyncSession):
 # OPERATORS
 # ============================================================
 
-@router.callback_query(RoleFilter("admin"), F.data == CB.ADMIN_OPERATORS)
+@router.callback_query(RoleFilter("admin"), F.data.startswith("admin:operators"))
 async def admin_operators(call: CallbackQuery, session: AsyncSession):
     users = UsersDAO(session)
     operators = await users.list_operators()
@@ -246,4 +246,5 @@ async def stats_graph(call: CallbackQuery, session: AsyncSession):
 
     await call.message.edit_text(text, parse_mode="HTML")
     await call.answer()
+
 

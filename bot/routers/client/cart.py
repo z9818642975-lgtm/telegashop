@@ -13,7 +13,7 @@ from bot.routers.client.catalog import render_catalog
 router = Router(name="client_cart")
 
 
-@router.callback_query(F.data == CB.CART_OPEN)
+@router.callback_query(F.data == ("client:cart:open:"))
 async def open_cart(cb: CallbackQuery, session: AsyncSession, user):
     await render_cart(cb, session, user)
 
@@ -46,7 +46,7 @@ async def render_cart(cb: CallbackQuery, session: AsyncSession, user):
 
 
 # ❌ УДАЛЕНИЕ КОНКРЕТНОГО ТОВАРА
-@router.callback_query(F.data.startswith("item:remove:"))
+@router.callback_query(F.data.startswith("client:item:remove:"))
 async def remove_item(cb: CallbackQuery, session: AsyncSession, user):
     item_id = int(cb.data.split(":")[2])
 
@@ -61,7 +61,7 @@ async def remove_item(cb: CallbackQuery, session: AsyncSession, user):
 
 
 # 🔢 УСТАНОВКА КОЛИЧЕСТВА (НЕ СУММИРОВАНИЕ)
-@router.callback_query(F.data.startswith("item:qty:"))
+@router.callback_query(F.data.startswith("client:item:qty:"))
 async def set_item_qty(cb: CallbackQuery, session: AsyncSession, user):
     _, _, item_id, qty = cb.data.split(":")
     item_id = int(item_id)
@@ -78,10 +78,11 @@ async def set_item_qty(cb: CallbackQuery, session: AsyncSession, user):
     await render_cart(cb, session, user)
 
 
-@router.callback_query(F.data == CB.CART_CLEAR)
+@router.callback_query(F.data.startswith("cart:clear"))
 async def clear_cart(cb: CallbackQuery, session: AsyncSession, user):
     orders = OrdersDAO(session)
     await orders.clear_cart(user.id)
     await session.commit()
 
     await render_catalog(cb, session)
+

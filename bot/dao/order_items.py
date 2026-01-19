@@ -66,6 +66,46 @@ class OrderItemDAO:
 
         await self.session.flush()
         return item
+    
+    async def set_quantity(
+        self,
+        *,
+        order_id: int,
+        product_id: int,
+        qty: int,
+        price: int,
+    ) -> OrderItem:
+        """
+        Устанавливает количество товара в корзине.
+
+        Используется:
+        - при выборе количества (qty:{product_id}:{qty})
+        - для идемпотентного UX
+        """
+
+        stmt = select(OrderItem).where(
+            OrderItem.order_id == order_id,
+            OrderItem.product_id == product_id,
+        )
+        res = await self.session.execute(stmt)
+        item = res.scalar_one_or_none()
+
+        if item:
+            item.qty = qty
+            item.price = price
+        else:
+            item = OrderItem(
+                order_id=order_id,
+                product_id=product_id,
+                qty=qty,
+                price=price,
+                status=OrderItemStatus.NEW,
+            )
+            self.session.add(item)
+
+        await self.session.flush()
+        return item
+
 
     # =========================================================
     # BASE

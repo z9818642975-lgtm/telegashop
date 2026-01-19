@@ -12,7 +12,7 @@ def cart_inline_kb(items: Iterable) -> InlineKeyboardMarkup:
         keyboard.append([
             InlineKeyboardButton(
                 text=str(i),
-                callback_data=f"item:qty:{item_id}:{i}"
+                callback_data=f"client:item:qty:{item_id}:{i}"
             )
             for i in range(1, 6)
         ])
@@ -21,7 +21,7 @@ def cart_inline_kb(items: Iterable) -> InlineKeyboardMarkup:
         keyboard.append([
             InlineKeyboardButton(
                 text=str(i),
-                callback_data=f"item:qty:{item_id}:{i}"
+                callback_data=f"client:item:qty:{item_id}:{i}"
             )
             for i in range(6, 11)
         ])
@@ -30,7 +30,7 @@ def cart_inline_kb(items: Iterable) -> InlineKeyboardMarkup:
         keyboard.append([
             InlineKeyboardButton(
                 text="❌ Удалить",
-                callback_data=f"item:remove:{item_id}"
+                callback_data=f"client:item:remove:{item_id}"
             )
         ])
 
@@ -38,7 +38,7 @@ def cart_inline_kb(items: Iterable) -> InlineKeyboardMarkup:
     keyboard.append([
         InlineKeyboardButton(
             text="🗑 Очистить корзину",
-            callback_data="cart:clear"
+            callback_data="client:cart:clear"
         )
     ])
 

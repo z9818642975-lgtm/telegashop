@@ -7,11 +7,11 @@ def pickup_confirm_kb() -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text="✅ Подтвердить",
-                    callback_data="op:pickup:confirm",
+                    callback_data="operator:pickup:confirm",
                 ),
                 InlineKeyboardButton(
                     text="❌ Отменить",
-                    callback_data="op:pickup:cancel",
+                    callback_data="operator:pickup:cancel",
                 ),
             ]
         ]

@@ -14,7 +14,7 @@ from bot.keyboards.client.delivery import delivery_kb
 router = Router(name="client_checkout")
 
 
-@router.callback_query(F.data == CB.CART_CHECKOUT)
+@router.callback_query(F.data.startswith("cart:checkout"))
 async def start_checkout(
     cb: CallbackQuery,
     session: AsyncSession,
@@ -38,7 +38,7 @@ async def start_checkout(
 
 @router.callback_query(
     CheckoutFSM.delivery,
-    F.data.in_({CB.DELIVERY_PICKUP, CB.DELIVERY_COURIER}),
+    F.data.startswith("delivery:"),
 )
 async def select_delivery(
     cb: CallbackQuery,
@@ -73,3 +73,4 @@ async def select_delivery(
         await cb.message.edit_text(
             "📦 <b>Введите адрес доставки</b>",
         )
+

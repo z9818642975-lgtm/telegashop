@@ -20,7 +20,7 @@ router = Router(name="client_catalog")
 # OPEN CATALOG
 # ============================
 
-@router.callback_query(F.data == CB.CATALOG_OPEN)
+@router.callback_query(F.data == ("catalog:open:"))
 async def open_catalog(cb: CallbackQuery, session: AsyncSession):
     await render_catalog(cb, session)
 
@@ -49,7 +49,7 @@ async def render_catalog(
 # OPEN PRODUCT CARD
 # ============================
 
-@router.callback_query(F.data.startswith("product:"))
+@router.callback_query(F.data.startswith("client:product:"))
 
 async def open_product(cb: CallbackQuery, session: AsyncSession):
     product_id = int(cb.data.split(":")[2])
@@ -64,13 +64,13 @@ async def open_product(cb: CallbackQuery, session: AsyncSession):
             [
                 InlineKeyboardButton(
                     text="➕ Добавить в корзину",
-                    callback_data=f"product:add:{product.id}",
+                    callback_data=f"client:product:add:{product.id}",
                 )
             ],
             [
                 InlineKeyboardButton(
                     text="⬅️ Назад",
-                    callback_data=CB.CATALOG_OPEN,
+                    callback_data=BACK_CATALOG,
                 )
             ],
         ]
@@ -89,7 +89,7 @@ async def open_product(cb: CallbackQuery, session: AsyncSession):
 # ADD PRODUCT → CREATE ORDER ITEM
 # ============================
 
-@router.callback_query(F.data.startswith("product:add:"))
+@router.callback_query(F.data.startswith("client:product:add:"))
 async def add_product(cb: CallbackQuery, session: AsyncSession, user):
     product_id = int(cb.data.split(":")[2])
 

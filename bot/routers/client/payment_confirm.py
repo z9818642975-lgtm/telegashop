@@ -41,7 +41,7 @@ router = Router(name="client_payment_confirm")
 
 
 
-@router.callback_query(F.data == "payment:submit")
+@router.callback_query(F.data == "client:payment:submit")
 
 
 async def submit(
@@ -125,7 +125,7 @@ async def receive_receipt(
 
 
 
-@router.callback_query(F.data == "payment:cancel")
+@router.callback_query(F.data == "client:payment:cancel")
 
 
 async def cancel(

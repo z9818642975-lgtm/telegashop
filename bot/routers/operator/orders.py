@@ -19,7 +19,7 @@ router = Router(name="operator_orders")
 
 @router.callback_query(
     RoleFilter("operator"),
-    F.data.startswith("op:check:accept:")
+    F.data.startswith("operator:check:accept:")
 )
 async def approve_check(
     call: CallbackQuery,
@@ -49,7 +49,7 @@ async def approve_check(
 
 @router.callback_query(
     RoleFilter("operator"),
-    F.data.startswith("op:order:ready:")
+    F.data.startswith("operator:order:ready:")
 )
 async def order_ready(
     call: CallbackQuery,
@@ -78,7 +78,7 @@ async def order_ready(
 
 @router.callback_query(
     RoleFilter("operator"),
-    F.data.startswith("op:order:sent:")
+    F.data.startswith("operator:order:sent:")
 )
 async def order_sent(
     call: CallbackQuery,
