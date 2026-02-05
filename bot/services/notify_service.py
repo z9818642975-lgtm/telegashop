@@ -1,29 +1,11 @@
 # bot/services/notify_service.py
-from __future__ import annotations
-
 # bot/services/notify_service.py
 from __future__ import annotations
 
-
-
-
-
 from aiogram import Bot
-
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
-
-
-
-
 from bot.dao.operators_dao import OperatorsDAO
-
-
-
-
-
-
 
 
 class NotifyService:
@@ -96,6 +78,8 @@ class NotifyService:
 
 
             pass
+
+
 
 
 

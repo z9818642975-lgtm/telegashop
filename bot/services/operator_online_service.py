@@ -14,19 +14,9 @@
 
 
 
-from bot.dao.shifts_dao import OperatorShiftDAO
-
-
-from bot.dao.users_dao import UsersDAO
-
-
 from bot.core.logger import logger
-
-
-
-
-
-
+from bot.dao.shifts_dao import OperatorShiftDAO
+from bot.dao.users_dao import UsersDAO
 
 
 class OperatorOnlineService:
@@ -138,6 +128,8 @@ class OperatorOnlineService:
 
 
                 )
+
+
 
 
 

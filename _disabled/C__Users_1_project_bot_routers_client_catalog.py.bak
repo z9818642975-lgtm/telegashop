@@ -1,0 +1,22 @@
+from aiogram import Router
+from aiogram.types import CallbackQuery
+
+from bot.constants.callbacks import (
+    CatalogOpen,
+    ProductOpen,
+)
+from bot.keyboards.client.quantity import quantity_kb
+
+router = Router()
+
+
+@router.callback_query(CatalogOpen.filter())
+async def catalog_open(cb: CallbackQuery):
+    await cb.answer()
+
+
+@router.callback_query(ProductOpen.filter())
+async def product_open(cb: CallbackQuery, callback_data: ProductOpen):
+    await cb.message.edit_reply_markup(
+        reply_markup=quantity_kb(item_id=callback_data.product_id)
+    )

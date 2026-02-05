@@ -7,11 +7,7 @@
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-
 from bot.models.audit_log import AuditLog
-
-
-
 
 
 async def audit(session: AsyncSession, actor_id: int, action: str, entity: str, entity_id: int | None = None):
@@ -36,6 +32,8 @@ async def audit(session: AsyncSession, actor_id: int, action: str, entity: str, 
 
 
     await session.commit()
+
+
 
 
 

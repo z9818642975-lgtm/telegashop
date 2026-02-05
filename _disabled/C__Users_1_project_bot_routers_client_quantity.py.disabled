@@ -1,0 +1,20 @@
+from bot.constants.callbacks import *
+from aiogram import Router
+from aiogram.types import CallbackQuery
+from bot.dao.orders import OrdersDAO
+
+router = Router()
+
+
+@router.callback_query(ClientItemQtyNone())
+async def on_qty(cb: CallbackQuery, callback_data: ClientItemQty):
+    async with OrdersDAO() as dao:
+        await dao.set_item_qty(
+            order_item_id=callback_data.item_id,
+            qty=callback_data.qty,
+        )
+    await None("Добавлено")
+
+
+
+

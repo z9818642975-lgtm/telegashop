@@ -1,101 +1,62 @@
-from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery
-from aiogram.fsm.context import FSMContext
+# bot/routers/operator/shifts.py
+from aiogram import F, Router
+from aiogram.types import Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.filters.role import RoleFilter
-from bot.dao.operator_shift_dao import OperatorShiftDAO, OperatorShiftStateError
-from bot.keyboards.operator.main import operator_main_menu
-from bot.fsm.operator_shift_fsm import OperatorShiftFSM
+from bot.dao.operator_shift_dao import OperatorShiftDAO
+from bot.keyboards.operator.main import operator_main_menu_kb
 
-router = Router(name="operator_shift")
+router = Router(name="operator_shifts")
 
-# ============================================================
-# START SHIFT (STEP 1) — кнопка "🟢 Выйти на смену"
-# ============================================================
 
-@router.message(
-    RoleFilter("operator"),
-    F.text == "🟢 Выйти на смену",
-)
-async def start_shift_request(
+@router.message(F.text == "🟢 Начать смену")
+async def start_shift(
     message: Message,
-    state: FSMContext,
-):
-    await state.set_state(OperatorShiftFSM.pickup_address)
-    await message.answer(
-        "📍 Введите адрес самовывоза:",
-    )
-
-# ============================================================
-# START SHIFT (STEP 2) — ввод адреса
-# ============================================================
-
-@router.message(
-    RoleFilter("operator"),
-    OperatorShiftFSM.pickup_address,
-)
-async def start_shift_confirm(
-    message: Message,
-    state: FSMContext,
     session: AsyncSession,
     user,
 ):
-    address = message.text.strip()
-    if not address:
-        await message.answer("❌ Адрес не может быть пустым")
-        return
+    dao = OperatorShiftDAO(session)
 
-    shifts = OperatorShiftDAO(session)
-
-    try:
-        await shifts.start_shift(
-            operator_id=user.id,
-            pickup_address=address,
-        )
-    except OperatorShiftStateError:
+    active = await dao.get_active(user.id)
+    if active:
         await message.answer(
             "⚠️ Смена уже активна",
-            reply_markup=operator_main_menu(on_shift=True),
+            reply_markup=operator_main_menu_kb(on_shift=True),
         )
-        await state.clear()
         return
 
+    await dao.start(
+        operator_id=user.id,
+        pickup_address="—",  # по контракту вводится при старте
+    )
     await session.commit()
-    await state.clear()
 
     await message.answer(
-        f"✅ Смена начата\n\n📍 Самовывоз:\n{address}",
-        reply_markup=operator_main_menu(on_shift=True),
+        "✅ Смена начата",
+        reply_markup=operator_main_menu_kb(on_shift=True),
     )
 
-# ============================================================
-# STOP SHIFT
-# ============================================================
 
-@router.message(
-    RoleFilter("operator"),
-    F.text == "⏸ Закрыть смену",
-)
+@router.message(F.text == "🔴 Завершить смену")
 async def stop_shift(
     message: Message,
     session: AsyncSession,
     user,
 ):
-    shifts = OperatorShiftDAO(session)
+    dao = OperatorShiftDAO(session)
 
-    if not await shifts.is_on_shift(user.id):
+    active = await dao.get_active(user.id)
+    if not active:
         await message.answer(
             "⚠️ Смена не активна",
-            reply_markup=operator_main_menu(on_shift=False),
+            reply_markup=operator_main_menu_kb(on_shift=False),
         )
         return
 
-    await shifts.stop_shift(operator_id=user.id)
+    await dao.stop(operator_id=user.id)
     await session.commit()
 
     await message.answer(
         "🔴 Смена завершена",
-        reply_markup=operator_main_menu(on_shift=False),
+        reply_markup=operator_main_menu_kb(on_shift=False),
     )
-

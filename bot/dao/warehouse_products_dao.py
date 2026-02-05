@@ -2,19 +2,9 @@
 from sqlalchemy import select
 
 # bot/dao/warehouse_products_dao.py
-from sqlalchemy import select
-
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
-
 from bot.models.warehouse_product import WarehouseProduct
-
-
-
-
-
-
 
 
 class WarehouseProductsDAO:
@@ -110,6 +100,7 @@ class WarehouseProductsDAO:
 
 
         await self.add(to_wh, product_id, qty)
+
 
 
 

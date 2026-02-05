@@ -1,76 +1,92 @@
 # bot/routers/client/checkout.py
-from __future__ import annotations
-
-from aiogram import Router, F
-from aiogram.types import CallbackQuery
+from aiogram import Router
+from aiogram.fsm.context import FSMContext
+from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.constants.callbacks import CB
+from bot.constants.callbacks_common import (
+    ClientDeliveryCourier,
+    ClientDeliveryPickup,
+    ClientPayBank,
+    ClientPaymentCancel,
+    ClientPaySBP,
+)
 from bot.dao.orders_dao import OrdersDAO
-from bot.dao.operator_shift_dao import OperatorShiftDAO
 from bot.fsm.checkout_fsm import CheckoutFSM
-from bot.keyboards.client.delivery import delivery_kb
+from bot.keyboards.client.banks import client_banks_kb
 
 router = Router(name="client_checkout")
 
 
-@router.callback_query(F.data.startswith("cart:checkout"))
-async def start_checkout(
-    cb: CallbackQuery,
-    session: AsyncSession,
-    state,
-    user,
-):
-    orders = OrdersDAO(session)
-    order = await orders.get_cart(user.id)
+# === ВЫБОР ДОСТАВКИ ===
 
-    if not order or not order.items:
-        await cb.answer("Корзина пуста", show_alert=True)
-        return
-
-    await state.set_state(CheckoutFSM.delivery)
-
+@router.callback_query(ClientDeliveryPickup.filter())
+async def delivery_pickup(cb: CallbackQuery, session: AsyncSession):
+    await OrdersDAO(session).set_delivery_method(
+        user_id=cb.from_user.id,
+        method="pickup",
+    )
     await cb.message.edit_text(
-        "🚚 <b>Выберите способ доставки</b>",
-        reply_markup=delivery_kb(),
+        "📦 Самовывоз выбран\n\nВыберите способ оплаты:",
+        reply_markup=client_banks_kb(),
+    )
+    await cb.answer()
+
+
+@router.callback_query(ClientDeliveryCourier.filter())
+async def delivery_courier(cb: CallbackQuery, state: FSMContext):
+    await state.set_state(CheckoutFSM.address)
+    await state.update_data(delivery="courier")
+    await cb.message.edit_text("🚚 Введите адрес доставки:")
+    await cb.answer()
+
+
+# === ВВОД АДРЕСА ===
+
+@router.message(CheckoutFSM.address)
+async def checkout_address(
+    msg: Message,
+    state: FSMContext,
+    session: AsyncSession,
+):
+    data = await state.get_data()
+
+    await OrdersDAO(session).set_delivery_address(
+        user_id=msg.from_user.id,
+        address=msg.text,
+        delivery_method=data["delivery"],
+    )
+
+    await state.clear()
+    await msg.answer(
+        "Адрес сохранён.\n\nВыберите способ оплаты:",
+        reply_markup=client_banks_kb(),
     )
 
 
-@router.callback_query(
-    CheckoutFSM.delivery,
-    F.data.startswith("delivery:"),
-)
-async def select_delivery(
-    cb: CallbackQuery,
-    session: AsyncSession,
-    state,
-    user,
-):
-    delivery_type = cb.data.split(":")[1]
+# === ОПЛАТА ===
 
-    orders = OrdersDAO(session)
-    order = await orders.get_cart(user.id)
+@router.callback_query(ClientPayBank.filter())
+async def pay_bank(cb: CallbackQuery, callback_data: ClientPayBank):
+    await cb.message.edit_text(
+        f"🏦 Реквизиты банка #{callback_data.bank_id}\n\n"
+        "После оплаты отправьте фото или PDF чека.",
+    )
+    await cb.answer()
 
-    if not order:
-        await cb.answer("Корзина пуста", show_alert=True)
-        return
 
-    order.delivery_type = delivery_type
-    await session.commit()
+@router.callback_query(ClientPaySBP.filter())
+async def pay_sbp(cb: CallbackQuery):
+    await cb.message.edit_text(
+        "📱 Реквизиты СБП\n\n"
+        "После оплаты отправьте фото или PDF чека.",
+    )
+    await cb.answer()
 
-    if delivery_type == "pickup":
-        shift = await OperatorShiftDAO(session).get_active_shift()
-        address = shift.pickup_address if shift else "уточняется"
 
-        await state.set_state(CheckoutFSM.payment)
+# === ОТМЕНА ===
 
-        await cb.message.edit_text(
-            f"📍 <b>Самовывоз</b>\n\nАдрес: {address}",
-        )
-    else:
-        await state.set_state(CheckoutFSM.address)
-
-        await cb.message.edit_text(
-            "📦 <b>Введите адрес доставки</b>",
-        )
-
+@router.callback_query(ClientPaymentCancel.filter())
+async def payment_cancel(cb: CallbackQuery):
+    await cb.message.edit_text("❌ Оплата отменена")
+    await cb.answer()

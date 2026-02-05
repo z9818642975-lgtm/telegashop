@@ -18,3 +18,5 @@ class RoleMiddleware(BaseMiddleware):
         data["role"] = user.role
 
         return await handler(event, data)
+
+

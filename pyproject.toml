@@ -1,0 +1,16 @@
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+fix = true
+exclude = [
+  "bot/tools",
+  "bot/services/chat_service.py",
+]
+
+[tool.ruff.lint]
+select = ["F", "E", "I"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+known-first-party = ["bot"]

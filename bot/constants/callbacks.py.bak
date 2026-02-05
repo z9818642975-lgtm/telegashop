@@ -1,0 +1,12 @@
+from aiogram.filters.callback_data import CallbackData
+
+# =========================================================
+# COMMON (допустимы во всех контурах)
+# =========================================================
+
+class BackMenu(CallbackData, prefix="back_menu"):
+    pass
+
+
+class BackCatalog(CallbackData, prefix="back_catalog"):
+    pass

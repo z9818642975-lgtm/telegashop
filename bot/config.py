@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     TIMEZONE: str | None = None
     LOKI_MODE: bool | None = None
     LOKI_URL: str | None = None
-    WATCHDOG_ENABLED: bool | None = None
+    WATCHDOG_ENABLED: bool = False
     WATCHDOG_INTERVAL_SECONDS: int | None = None
 
     # === Pydantic v2 config ===
@@ -61,3 +61,4 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+

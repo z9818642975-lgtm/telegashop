@@ -1,0 +1,20 @@
+from aiogram import Router, F
+from aiogram.types import CallbackQuery
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from bot.constants.callbacks import ClientDeliveryPriceCB
+from bot.middlewares.db import DBSessionMiddleware
+
+router = Router(name="client_delivery_price")
+router.message.middleware(DBSessionMiddleware())
+router.callback_query.middleware(DBSessionMiddleware())
+
+
+@router.callback_query(ClientDeliveryPriceCB.filter())
+async def select_delivery_price(
+    cb: CallbackQuery,
+    callback_data: ClientDeliveryPriceCB,
+    session: AsyncSession,
+):
+    # логика остаётся как была, здесь только контракт
+    await cb.answer()

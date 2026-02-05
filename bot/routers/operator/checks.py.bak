@@ -1,0 +1,49 @@
+from aiogram import Router
+from aiogram.types import CallbackQuery
+from sqlalchemy.ext.asyncio import AsyncSession
+from bot.db import async_session_maker
+
+from bot.constants.callbacks_operator import (
+    OperatorCheckAccept,
+    OperatorCheckReject,
+)
+from bot.dao.orders_dao import OrdersDAO
+from bot.middlewares.db import DBSessionMiddleware
+from bot.services.notifier import Notifier
+from bot.db import async_session_maker
+
+router = Router()
+router.callback_query.middleware(DBSessionMiddleware(async_session_maker))
+
+
+@router.callback_query(OperatorCheckAccept.filter())
+async def check_accept(
+    cb: CallbackQuery,
+    callback_data: OperatorCheckAccept,
+    session: AsyncSession,
+):
+    await OrderDAO.accept_payment(
+        session=session,
+        order_id=callback_data.order_id,
+        operator_tg_id=cb.from_user.id,
+    )
+    await Notifier().payment_accepted(callback_data.order_id)
+    await cb.answer("Платёж принят")
+
+
+@router.callback_query(OperatorCheckReject.filter())
+async def check_reject(
+    cb: CallbackQuery,
+    callback_data: OperatorCheckReject,
+    session: AsyncSession,
+):
+    await OrderDAO.reject_payment(
+        session=session,
+        order_id=callback_data.order_id,
+        operator_tg_id=cb.from_user.id,
+    )
+    await Notifier().payment_rejected(callback_data.order_id)
+    await cb.answer("Платёж отклонён")
+
+
+

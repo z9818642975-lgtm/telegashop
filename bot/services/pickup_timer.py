@@ -1,11 +1,13 @@
+# bot/services/pickup_timer.py
 from __future__ import annotations
 
 import asyncio
+
 from aiogram import Bot
 
 from bot.config import settings
-from bot.db import async_session_maker
 from bot.dao.orders_dao import OrdersDAO
+from bot.db import async_session_maker
 from bot.models.enums import OrderStatus
 
 
@@ -47,4 +49,6 @@ async def _pickup_timer(order_id: int) -> None:
 
         finally:
             await bot.session.close()
+
+
 

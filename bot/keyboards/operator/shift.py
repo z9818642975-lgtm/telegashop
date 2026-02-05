@@ -1,23 +1,27 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from bot.constants.callbacks import CB
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-on_shift_kb = InlineKeyboardMarkup(
-    inline_keyboard=[
-        [InlineKeyboardButton(text="🚀 Выйти на смену", callback_data=CB.OP_SHIFT_START)]
-    ]
-)
+from bot.actions.operator import OperatorAction
+from bot.constants.action_cb import ActionCB
 
-off_shift_kb = InlineKeyboardMarkup(
-    inline_keyboard=[
-        [InlineKeyboardButton(text="⛔ Завершить смену", callback_data=CB.OP_SHIFT_STOP)],
-        [InlineKeyboardButton(text="✏️ Изменить адрес", callback_data=CB.OP_SHIFT_EDIT_ADDRESS)],
-    ]
-)
 
-confirm_shift_kb = InlineKeyboardMarkup(
-    inline_keyboard=[
-        [InlineKeyboardButton(text="✅ Подтвердить", callback_data=CB.OP_SHIFT_CONFIRM)],
-        [InlineKeyboardButton(text="❌ Отмена", callback_data=CB.OP_SHIFT_CANCEL)],
-    ]
-)
-
+def operator_shift_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="О ▶️ Начать смену",
+                    callback_data=ActionCB(
+                        action=OperatorAction.SHIFT_START
+                    ).pack(),
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="О ⏹ Завершить смену",
+                    callback_data=ActionCB(
+                        action=OperatorAction.SHIFT_STOP
+                    ).pack(),
+                )
+            ],
+        ]
+    )

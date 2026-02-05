@@ -1,12 +1,11 @@
+# bot/dao/products_dao.py
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
+from bot.dao.base import BaseDAO
 from bot.models.product import Product
 
 
-class ProductsDAO:
-    def __init__(self, session: AsyncSession):
-        self.session = session
+class ProductsDAO(BaseDAO):
 
     async def get_active(self) -> list[Product]:
         res = await self.session.execute(
@@ -19,4 +18,3 @@ class ProductsDAO:
             select(Product).where(Product.id == product_id)
         )
         return res.scalar_one_or_none()
-

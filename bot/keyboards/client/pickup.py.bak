@@ -1,0 +1,17 @@
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+
+def client_pickup_addresses_kb(shifts):
+    rows = []
+    for s in shifts:
+        rows.append([
+            InlineKeyboardButton(
+                text=s.pickup_address,
+callback_data=CB.__BROKEN_CALLBACK__
+            )
+        ])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+
+

@@ -4,29 +4,12 @@
 # bot/routers/operator/alive.py
 
 
-from aiogram import Router, F
-
-
+from aiogram import F, Router
 from aiogram.types import CallbackQuery
-
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
-
-
-
-
 from bot.dao.operator_shift_dao import OperatorShiftDAO
-
-
 from bot.models.user import User
-
-
-from bot.constants.callbacks import CB
-
-
-
-
 
 router = Router(name="operator_alive")
 
@@ -37,7 +20,7 @@ router = Router(name="operator_alive")
 
 
 
-@router.callback_query(F.data == CB.OP_ALIVE)
+@router.callback_query(F.data.is_(None))
 
 
 async def operator_alive(
@@ -55,7 +38,7 @@ async def operator_alive(
 ):
 
 
-    await cb.answer("🟢 Онлайн")
+    await None("🟢 Онлайн")
 
 
 
@@ -65,6 +48,13 @@ async def operator_alive(
 
 
     await dao.touch_alive(operator_id=user.id)
+
+
+
+
+
+
+
 
 
 

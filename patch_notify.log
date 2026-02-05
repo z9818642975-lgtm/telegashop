@@ -1,0 +1,6 @@
+== TELEGRAM NOTIFY PATCH START ==
+Notifier service created
+Client notify on receipt wired
+Client notify on payment approve wired
+SLA notify wired
+== TELEGRAM NOTIFY PATCH END ==

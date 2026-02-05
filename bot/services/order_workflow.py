@@ -1,8 +1,8 @@
 # bot/services/order_workflow.py
 import asyncio
 
-from bot.db import async_session_maker
 from bot.dao.orders_dao import OrdersDAO
+from bot.db import async_session_maker
 
 
 def schedule_assembling(order_id: int, delay: int = 10) -> None:
@@ -13,4 +13,6 @@ def schedule_assembling(order_id: int, delay: int = 10) -> None:
             await session.commit()
 
     asyncio.create_task(task())
+
+
 

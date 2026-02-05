@@ -1,43 +1,27 @@
-# bot/keyboards/inline/operator_check.py
+# bot/keyboards/operator/operator_check.py
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+from bot.constants.callbacks_operator import OperatorCheckCB
 
 
-# bot/keyboards/inline/operator_check.py
-
-
-
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-
-
-
-
-
-def operator_check_kb(order_id: int):
-
-
+def operator_check_kb(order_id: int) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
-
-
         inline_keyboard=[
-
-
             [
-
-
-                InlineKeyboardButton(text="✅ Принять чек", callback_data=f"operator:check:accept:{order_id}"),
-
-
-                InlineKeyboardButton(text="❌ Отклонить чек", callback_data=f"operator:check:reject:{order_id}")
-
-
+                InlineKeyboardButton(
+                    text="О 💰 Оплата прошла",
+                    callback_data=OperatorCheckCB(
+                        order_id=order_id,
+                        result="paid",
+                    ).pack(),
+                ),
+                InlineKeyboardButton(
+                    text="О ❌ Оплата не прошла",
+                    callback_data=OperatorCheckCB(
+                        order_id=order_id,
+                        result="failed",
+                    ).pack(),
+                ),
             ]
-
-
         ]
-
-
     )
-
-
-
-
-

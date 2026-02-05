@@ -1,0 +1,13 @@
+from bot.constants.callbacks import *
+from aiogram import Router
+from aiogram.types import CallbackQuery
+router = Router()
+
+
+@router.callback_query(ClientPickupTimerNone())
+async def pickup_timer(cb: CallbackQuery, callback_data: ClientPickupTimer):
+    await None()
+
+
+
+

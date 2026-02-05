@@ -1,0 +1,144 @@
+# bot/tools/guard_callbacks.py
+from __future__ import annotations
+
+import ast
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from typing import Dict, Set
+
+from aiogram.filters.callback_data import CallbackData
+
+# === LOAD ALL CALLBACKS ===
+# COMMON
+from bot.constants.callbacks_client import *
+from bot.constants.callbacks_operator import *
+
+PROJECT_ROOT = Path("bot")
+ROUTERS_DIR = PROJECT_ROOT / "routers"
+
+IGNORED_PARTS = {
+    "__pycache__",
+    ".bak",
+    ".disabled",
+}
+
+# =========================
+# COLLECT CALLBACK CLASSES
+# =========================
+
+def collect_callbacks() -> Dict[str, type]:
+    callbacks = {}
+    for obj in globals().values():
+        if (
+            isinstance(obj, type)
+            and issubclass(obj, CallbackData)
+            and obj is not CallbackData
+        ):
+            callbacks[obj.__name__] = obj
+    return callbacks
+
+
+CALLBACKS = collect_callbacks()
+
+print(f"[OK] CallbackData classes: {len(CALLBACKS)}")
+
+
+# =========================
+# FILE SCAN HELPERS
+# =========================
+
+def is_ignored(path: Path) -> bool:
+    return any(part in IGNORED_PARTS for part in path.parts)
+
+
+def read_text(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8")
+    except Exception:
+        return ""
+
+
+def uses_callback_query_true(tree: ast.AST) -> bool:
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call):
+            if getattr(node.func, "attr", None) == "callback_query":
+                if node.args and isinstance(node.args[0], ast.Constant):
+                    if node.args[0].value is True:
+                        return True
+    return False
+
+
+def find_used_callbacks(tree: ast.AST) -> Set[str]:
+    used = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Name):
+            if node.id in CALLBACKS:
+                used.add(node.id)
+    return used
+
+
+# =========================
+# MAIN SCAN
+# =========================
+
+errors = []
+
+for file in ROUTERS_DIR.rglob("*.py"):
+    if is_ignored(file):
+        continue
+
+    text = read_text(file)
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        continue
+
+    rel = str(file)
+
+    is_client = "routers/client" in rel
+    is_operator = "routers/operator" in rel
+    is_admin = "routers/admin" in rel
+
+    used_callbacks = find_used_callbacks(tree)
+
+    # --- FORBIDDEN callback_query(True)
+    if is_operator and uses_callback_query_true(tree):
+        errors.append(
+            f" - [FORBIDDEN] callback_query(True) in {file}"
+        )
+
+    # --- CLIENT MUST NOT USE ADMIN CALLBACKS
+    if is_client:
+        if "callbacks_admin" in text or any(
+            name.startswith("Admin") for name in used_callbacks
+        ):
+            for name in sorted(n for n in used_callbacks if n.startswith("Admin")):
+                errors.append(
+                    f" - [VIOLATION] Admin callback {name} used in client: {file}"
+                )
+
+    # --- UNKNOWN CALLBACKS
+    for name in used_callbacks:
+        if name not in CALLBACKS:
+            errors.append(
+                f" - [UNKNOWN CALLBACK] {name} used but not defined"
+            )
+
+# =========================
+# RESULT
+# =========================
+
+if errors:
+    print("\n❌ GUARD CHECK FAILED\n")
+    for e in errors:
+        print(e)
+    sys.exit(1)
+
+print("\n✅ GUARD CHECK PASSED\n")
+
+# noqa: F401,F403,E402,E741

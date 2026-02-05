@@ -2,28 +2,11 @@
 from aiogram.filters import BaseFilter
 
 # bot/filters/operator_on_shift.py
-from aiogram.filters import BaseFilter
-
-
 from aiogram.types import TelegramObject
-
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
-
-
-
-
 from bot.dao.operator_shift_dao import OperatorShiftDAO
-
-
 from bot.models.enums import UserRole
-
-
-
-
-
-
 
 
 class OperatorOnShiftFilter(BaseFilter):
@@ -54,6 +37,7 @@ class OperatorOnShiftFilter(BaseFilter):
 
 
         return await OperatorShiftDAO(session).is_on_shift(user.id)
+
 
 
 

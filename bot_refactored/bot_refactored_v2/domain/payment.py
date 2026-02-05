@@ -1,3 +1,0 @@
-class PaymentStateError(Exception):
-    pass
-

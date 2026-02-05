@@ -2,16 +2,7 @@
 from dataclasses import dataclass
 
 # bot/events/order_item_events.py
-from dataclasses import dataclass
-
-
 from bot.models.enums import OrderItemStatus
-
-
-
-
-
-
 
 
 @dataclass(slots=True)
@@ -30,6 +21,8 @@ class OrderItemStatusChanged:
 
 
     status: OrderItemStatus
+
+
 
 
 

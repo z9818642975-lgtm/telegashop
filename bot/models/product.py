@@ -1,7 +1,15 @@
-from sqlalchemy import Text, Integer, Boolean
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+# bot/models/product.py
+from sqlalchemy import Boolean, Integer, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from bot.db.base import Base
+
+if TYPE_CHECKING:
+    pass
 
 
 class Product(Base):
@@ -41,3 +49,6 @@ class Product(Base):
     @property
     def price(self) -> int:
         return self.base_price
+
+
+# noqa: F821

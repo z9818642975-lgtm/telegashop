@@ -1,0 +1,40 @@
+from aiogram import Router
+from aiogram.types import CallbackQuery
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from bot.constants.callbacks import (
+    ClientItemIncreaseCB,
+    ClientItemDecreaseCB,
+    ClientItemRemoveCB,
+)
+from bot.middlewares.db import DBSessionMiddleware
+
+router = Router(name="client_order_item_actions")
+router.callback_query.middleware(DBSessionMiddleware())
+
+
+@router.callback_query(ClientItemIncreaseCB.filter())
+async def item_increase(
+    cb: CallbackQuery,
+    callback_data: ClientItemIncreaseCB,
+    session: AsyncSession,
+):
+    await cb.answer()
+
+
+@router.callback_query(ClientItemDecreaseCB.filter())
+async def item_decrease(
+    cb: CallbackQuery,
+    callback_data: ClientItemDecreaseCB,
+    session: AsyncSession,
+):
+    await cb.answer()
+
+
+@router.callback_query(ClientItemRemoveCB.filter())
+async def item_remove(
+    cb: CallbackQuery,
+    callback_data: ClientItemRemoveCB,
+    session: AsyncSession,
+):
+    await cb.answer()

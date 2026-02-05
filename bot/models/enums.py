@@ -1,4 +1,11 @@
+from __future__ import annotations
+
+# bot/models/enums.py
 from enum import StrEnum, auto
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    pass
 
 
 class UserRole(StrEnum):
@@ -8,15 +15,13 @@ class UserRole(StrEnum):
 
 
 class OrderStatus(StrEnum):
-    NEW = auto()                 # корзина
-    WAITING_PAYMENT = auto()     # ожидаем оплату
-    PAYMENT_SUBMITTED = auto()   # чек отправлен
-    ASSEMBLING = auto()          # оператор собирает
-    READY = auto()               # оператор загрузил фото + описание
-    SENT = auto()                # доставка отправлена
-    PICKED_UP = auto()           # самовывоз забран
-    DONE = auto()
-    CANCELLED = auto()
+    CART = auto()              # корзина
+    WAITING_PAYMENT = auto()   # выбран способ оплаты
+    NEED_CHECK = auto()        # чек отправлен, ждёт оператора
+    PAID = auto()              # подтверждена
+    IN_WORK = auto()           # у оператора
+    READY = auto()             # готов
+    DONE = auto()              # завершён
 
 
 class OrderItemStatus(StrEnum):
@@ -37,4 +42,4 @@ class PaymentStatus(StrEnum):
     SUBMITTED = auto()
     CONFIRMED = auto()
     REJECTED = auto()
-
+# noqa: F821

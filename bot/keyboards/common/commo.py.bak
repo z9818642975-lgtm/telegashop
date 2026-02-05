@@ -1,0 +1,31 @@
+# bot/keyboards/inline/common.py
+from aiogram.types import InlineKeyboardButton
+
+# bot/keyboards/inline/common.py
+from aiogram.types import InlineKeyboardButton
+
+
+
+
+
+def back_btn(callback_data: str):
+
+
+    return InlineKeyboardButton(
+
+
+        text="в¬… РќР°Р·Р°Рґ",
+
+
+        callback_data=CB.__BROKEN_CALLBACK__,
+
+
+    )
+
+
+
+
+
+
+
+

@@ -1,33 +1,24 @@
 BEGIN;
 
--- =====================================================
 -- USERS
--- tg_id UNIQUE, id — surrogate PK
--- =====================================================
 INSERT INTO users (tg_id, role)
 VALUES
     (7444294101, 'ADMIN'),
     (8413852743, 'OPERATOR')
-ON CONFLICT (tg_id) DO UPDATE
-SET role = EXCLUDED.role;
+ON CONFLICT (tg_id) DO UPDATE SET role = EXCLUDED.role;
 
--- =====================================================
--- PRODUCTS (6 штук, title UNIQUE)
--- =====================================================
+-- PRODUCTS (6)
 INSERT INTO products (title, description, base_price, min_qty, is_active)
 VALUES
-    ('🎮 Мяу', '1 шт = 3500₽, от 2 шт = 3000₽/шт', 3500, 1, TRUE),
-    ('📚 Кок', '1 шт = 11000₽, от 2 шт = 10000₽/шт', 11000, 1, TRUE),
+    ('🎮 Мяу', '1 шт = 4000, от 2 шт = 3500₽/шт', 4000, 1, TRUE),
+    ('📚 Кок', '1 шт = 12000₽, от 2 шт = 11000₽/шт', 12000, 1, TRUE),
     ('🍫 Экс', 'Продаётся от 2 шт', 1500, 2, TRUE),
     ('⚽️ Гар', NULL, 1800, 1, TRUE),
     ('🎨 Бош', NULL, 1800, 1, TRUE),
     ('🤖 Лир', NULL, 4000, 1, TRUE)
 ON CONFLICT (title) DO NOTHING;
 
--- =====================================================
 -- WAREHOUSE
--- owner_id = users.id (ВАЖНО)
--- =====================================================
 INSERT INTO warehouses (title, address, owner_id, is_active)
 SELECT
     'Основной склад',
@@ -35,20 +26,13 @@ SELECT
     u.id,
     TRUE
 FROM users u
-WHERE u.tg_id = 7444294101
+WHERE u.role = 'ADMIN'
+LIMIT 1
 ON CONFLICT DO NOTHING;
 
--- =====================================================
 -- BANK ACCOUNTS
--- =====================================================
 INSERT INTO bank_accounts (
-    bank_name,
-    card_number,
-    card_masked,
-    sbp_phone,
-    is_active,
-    load,
-    weight
+    bank_name, card_number, card_masked, sbp_phone, is_active, load, weight
 )
 VALUES
     ('Сбербанк', '2202208208297771', '2202 **** **** 7771', NULL, TRUE, 0, 100),
@@ -61,4 +45,3 @@ VALUES
     ('Альфа-Банк', NULL, NULL, '9818642975', TRUE, 0, 100);
 
 COMMIT;
-

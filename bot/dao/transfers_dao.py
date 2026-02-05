@@ -2,16 +2,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # bot/dao/transfers_dao.py
-from sqlalchemy.ext.asyncio import AsyncSession
-
-
 from bot.models.warehouse_transfer import WarehouseTransfer
-
-
-
-
-
-
 
 
 class TransfersDAO:
@@ -56,6 +47,8 @@ class TransfersDAO:
 
 
         return rec
+
+
 
 
 

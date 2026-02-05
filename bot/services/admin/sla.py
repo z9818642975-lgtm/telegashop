@@ -5,13 +5,8 @@
 
 
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
-
 from sqlalchemy import text
-
-
-
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 async def operator_sla(session: AsyncSession):
@@ -45,6 +40,7 @@ async def operator_sla(session: AsyncSession):
 
 
     return q.all()
+
 
 
 

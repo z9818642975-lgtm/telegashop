@@ -2,16 +2,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # bot/services/bank_stats_service.py
-from sqlalchemy.ext.asyncio import AsyncSession
-
-
 from bot.dao.bank_events_dao import BankEventsDAO
-
-
-
-
-
-
 
 
 class BankStatsService:
@@ -48,6 +39,8 @@ class BankStatsService:
 
 
         await self.events.add(bank_id=bank_id, bank_account_id=account_id, order_id=order_id, event_type="TIMEOUT")
+
+
 
 
 

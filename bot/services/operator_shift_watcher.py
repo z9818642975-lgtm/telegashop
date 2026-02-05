@@ -1,6 +1,4 @@
 # bot/services/operator_shift_watcher.py
-from __future__ import annotations
-
 import asyncio
 import logging
 
@@ -8,57 +6,56 @@ from aiogram import Bot
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from bot.dao.operator_shift_dao import OperatorShiftDAO
+from bot.services.notifier import Notifier
 
-logger = logging.getLogger("telegashop")
+logger = logging.getLogger(__name__)
+
+CHECK_INTERVAL_SECONDS = 60
 
 
 async def operator_shift_watcher(
-    *,
     bot: Bot,
     sessionmaker: async_sessionmaker,
-):
-    """
-    Фоновый watchdog:
-    - 15 мин → warn
-    - 17 мин → warn
-    - 20 мин → auto close
-    """
-
+) -> None:
     logger.info("👁 operator_shift_watcher started")
+
+    notifier = Notifier(bot)
 
     while True:
         try:
             async with sessionmaker() as session:
                 dao = OperatorShiftDAO(session)
 
-                # --- 20 минут → автозакрытие
-                shifts_20 = await dao.get_stale_shifts(
-                    inactive_minutes=dao.AUTO_CLOSE_MINUTES
-                )
-                for shift in shifts_20:
-                    await dao.stop_shift_by_id(shift_id=shift.id)
+                # 15 минут → предупреждение (осталось ~5)
+                for shift in await dao.get_active_older_than(15):
+                    if not shift.warned_15:
+                        await notifier.notify_operator_shift_ending(
+                            operator_tg_id=shift.operator_id,
+                            minutes_left=5,
+                        )
+                        await dao.mark_warned(shift.id, 15)
 
-                    logger.warning(
-                        f"⛔ Operator {shift.operator_id} shift auto-closed (20 min)"
-                    )
+                # 17 минут → предупреждение (осталось ~3)
+                for shift in await dao.get_active_older_than(17):
+                    if not shift.warned_17:
+                        await notifier.notify_operator_shift_ending(
+                            operator_tg_id=shift.operator_id,
+                            minutes_left=3,
+                        )
+                        await dao.mark_warned(shift.id, 17)
 
-                # --- 17 минут → предупреждение
-                shifts_17 = await dao.get_stale_shifts(
-                    inactive_minutes=dao.WARN_17_MINUTES
-                )
-                for shift in shifts_17:
-                    await dao.mark_warned(shift.id, minutes=17)
-
-                # --- 15 минут → предупреждение
-                shifts_15 = await dao.get_stale_shifts(
-                    inactive_minutes=dao.WARN_15_MINUTES
-                )
-                for shift in shifts_15:
-                    await dao.mark_warned(shift.id, minutes=15)
+                # 20 минут → автозакрытие
+                for shift in await dao.get_active_older_than(20):
+                    if not shift.auto_closed:
+                        await notifier.notify_operator_shift_closed(
+                            operator_tg_id=shift.operator_id,
+                        )
+                        await dao.mark_warned(shift.id, 20)
+                        await dao.stop_by_id(shift.id, auto=True)
 
                 await session.commit()
 
         except Exception:
             logger.exception("🔥 operator_shift_watcher error")
 
-        await asyncio.sleep(60)
+        await asyncio.sleep(CHECK_INTERVAL_SECONDS)

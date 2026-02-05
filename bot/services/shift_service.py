@@ -2,16 +2,9 @@
 from sqlalchemy import select
 
 # bot/services/shift_service.py
-from sqlalchemy import select
-
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
-
 from bot.models.operator_shift import OperatorShift
-
-
-
 
 
 class ShiftService:
@@ -48,6 +41,8 @@ class ShiftService:
 
 
         return res.scalar_one_or_none() is not None
+
+
 
 
 

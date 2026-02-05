@@ -1,8 +1,9 @@
-# bot/keyboards/inline/common.py
+# bot/keyboards/common/commo.py
 from aiogram.types import InlineKeyboardButton
 
+from bot.constants.callbacks_common import ClientCartOpen
+
 # bot/keyboards/inline/common.py
-from aiogram.types import InlineKeyboardButton
 
 
 
@@ -17,10 +18,12 @@ def back_btn(callback_data: str):
         text="⬅ Назад",
 
 
-        callback_data=callback_data,
+        callback_data=ClientCartOpen().pack(),
 
 
     )
+
+
 
 
 

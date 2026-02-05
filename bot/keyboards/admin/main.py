@@ -1,24 +1,23 @@
 # bot/keyboards/admin/main.py
+from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
-
-def admin_main_menu() -> ReplyKeyboardMarkup:
+def admin_main_menu_kb() -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(
         keyboard=[
             [
-                KeyboardButton(text="📦 Товары"),
-                KeyboardButton(text="🏦 Банки"),
+                KeyboardButton(text="А 📦 Товары"),
+                KeyboardButton(text="А 🏦 Банки"),
             ],
             [
-                KeyboardButton(text="👷 Операторы"),
-                KeyboardButton(text="🏬 Склады"),
+                KeyboardButton(text="А 👷 Операторы"),
+                KeyboardButton(text="А 🏬 Склады"),
             ],
             [
-                KeyboardButton(text="📊 Статистика"),
+                KeyboardButton(text="А 📋 Заказы"),
+                KeyboardButton(text="А 💰 Зарплаты"),
             ],
         ],
         resize_keyboard=True,
-        selective=True,
+        is_persistent=True,
     )
-

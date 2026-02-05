@@ -1,0 +1,6 @@
+== SLA E2E PATCH START ==
+SLA fields added to Order
+OrdersDAO.assign_operator added
+SLA watcher created
+SLA stop on accept wired
+== SLA E2E PATCH END ==

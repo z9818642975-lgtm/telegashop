@@ -1,0 +1,16 @@
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from bot.constants.callbacks import AdminProductCard
+
+
+def admin_products_kb(products: list) -> InlineKeyboardMarkup:
+    rows = []
+    for p in products:
+        rows.append(
+            [
+                InlineKeyboardButton(
+                    text=p.title,
+                    callback_data=AdminProductCard(product_id=p.id).pack(),
+                )
+            ]
+        )
+    return InlineKeyboardMarkup(inline_keyboard=rows)

@@ -1,76 +1,28 @@
 # bot/routers/operator/checks.py
-from aiogram import Router, F
-
-# bot/routers/operator/checks.py
-from aiogram import Router, F
-
-
+from aiogram import Router
 from aiogram.types import CallbackQuery
-
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
-
-
-
-
+from bot.constants.callbacks_operator import OperatorCheckCB
 from bot.dao.orders_dao import OrdersDAO
+from bot.db import async_session_maker
+from bot.middlewares.db import DBSessionMiddleware
+
+router = Router(name="operator_checks")
+router.callback_query.middleware(DBSessionMiddleware(async_session_maker))
 
 
-from bot.dao.payment_dao import PaymentDAO
-
-
-
-
-
-router = Router()
-
-
-
-
-
-@router.callback_query(F.data.startswith("operator:check:accept"))
-
-
-async def accept(call: CallbackQuery, session: AsyncSession):
-
-
-    order_id = int(call.data.split(":")[-1])
-
-
-    await PaymentDAO(session).approve(order_id)
-
-
-    await OrdersDAO(session).mark_paid(order_id)
-
-
-    await session.commit()
-
-
-    await call.message.edit_text("✅ Оплата подтверждена")
-
-
-
-
-
-@router.callback_query(F.data.startswith("operator:check:reject"))
-
-
-async def reject(call: CallbackQuery, session: AsyncSession):
-
-
-    order_id = int(call.data.split(":")[-1])
-
-
-    await PaymentDAO(session).reject(payment_id=order_id, reason="Неверный чек")
-
-
-    await session.commit()
-
-
-    await call.message.edit_text("❌ Чек отклонён")
-
-
-
-
+@router.callback_query(OperatorCheckCB.filter())
+async def operator_check_result(
+    cb: CallbackQuery,
+    callback_data: OperatorCheckCB,
+    session: AsyncSession,
+):
+    if callback_data.result == "paid":
+        await OrdersDAO(session).mark_paid(
+            order_id=callback_data.order_id,
+        )
+        await cb.answer("✅ Оплата подтверждена")
+    else:
+        await cb.answer("❌ Оплата отклонена")
 

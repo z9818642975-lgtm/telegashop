@@ -10,30 +10,11 @@
 
 from datetime import datetime, timedelta
 
-
-
-
-
 from sqlalchemy import select
-
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
-
-
-
-
-from bot.models.operator_shift import OperatorShift
-
-
 from bot.exceptions import ForbiddenError
-
-
-
-
-
-
-
+from bot.models.operator_shift import OperatorShift
 
 SHIFT_TTL_MINUTES = 30
 
@@ -138,6 +119,7 @@ async def ensure_operator_on_shift(
 
 
     return shift
+
 
 
 

@@ -1,20 +1,11 @@
 # bot/services/statistics_service.py
-from sqlalchemy import select, func
-
-# bot/services/statistics_service.py
-from sqlalchemy import select, func
-
-
-from bot.models.order import Order
-
-
-from bot.models.salary_accrual import SalaryAccrual
-
+from sqlalchemy import func, select
 
 from bot.models.operator_shift import OperatorShift
 
-
-
+# bot/services/statistics_service.py
+from bot.models.order import Order
+from bot.models.salary_accrual import SalaryAccrual
 
 
 class StatisticsService:
@@ -117,6 +108,8 @@ class StatisticsService:
 
 
         }
+
+
 
 
 

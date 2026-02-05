@@ -1,0 +1,66 @@
+from typing import Union
+
+from aiogram.types import CallbackQuery, Message
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from bot.dao.products_dao import ProductsDAO
+from bot.dao.orders_dao import OrdersDAO
+from bot.keyboards.client.catalog import catalog_kb
+from bot.keyboards.client.cart import cart_kb
+from bot.utils.safe_edit import safe_edit_text
+
+
+async def render_catalog(
+    event: Union[CallbackQuery, Message],
+    session: AsyncSession,
+):
+    products = await ProductsDAO(session).get_active()
+
+    text = "📦 <b>Каталог</b>\n\nВыберите товар:"
+
+    if isinstance(event, CallbackQuery):
+        await safe_edit_text(
+            event.message,
+            text=text,
+            reply_markup=catalog_kb(products),
+        )
+    else:
+        await event.answer(
+            text,
+            reply_markup=catalog_kb(products),
+        )
+
+
+async def render_cart(
+    message,
+    session: AsyncSession,
+    user,
+):
+    orders = OrdersDAO(session)
+    order = await orders.get_cart(user.id)
+
+    if not order or not order.items:
+        await safe_edit_text(
+            message,
+            text="🧺 <b>Корзина пуста</b>\n\nВыберите товары в каталоге.",
+        )
+        return
+
+    total = sum(item.qty * item.price for item in order.items)
+
+    lines = ["🧺 <b>Корзина</b>\n"]
+    for item in order.items:
+        lines.append(
+            f"• {item.product.title} × {item.qty} = {item.qty * item.price} ₽"
+        )
+
+    lines.append(f"\n<b>Итого:</b> {total} ₽")
+
+    await safe_edit_text(
+        message,
+        text="\n".join(lines),
+        reply_markup=cart_kb(order.items),
+    )
+
+
+

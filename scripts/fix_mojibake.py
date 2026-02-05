@@ -1,3 +1,4 @@
+# scripts/fix_mojibake.py
 from pathlib import Path
 import re
 

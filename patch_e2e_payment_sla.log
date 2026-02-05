@@ -1,0 +1,8 @@
+== E2E PAYMENT + SLA PATCH START ==
+WRITE: .\bot\services\notifier.py
+WRITE: .\bot\dao\payment_dao.py
+WRITE: .\bot\routers\client\payment_confirm.py
+WRITE: .\bot\routers\operator\checks.py
+WRITE: .\bot\services\sla_watcher.py
+PATCH: OrdersDAO.get_sla_expired
+== E2E PAYMENT + SLA PATCH END ==

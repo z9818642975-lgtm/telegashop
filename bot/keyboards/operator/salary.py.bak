@@ -1,0 +1,36 @@
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+from bot.constants.callbacks_operator import (
+    OperatorSalaryStatsCB,
+    OperatorSalaryPayoutCB,
+)
+
+
+def operator_salary_menu_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="О ",
+                    callback_data=OperatorSalaryStatsCB(period="day").pack(),
+                ),
+                InlineKeyboardButton(
+                    text="О ",
+                    callback_data=OperatorSalaryStatsCB(period="week").pack(),
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="О ",
+                    callback_data=OperatorSalaryStatsCB(period="month").pack(),
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="О ",
+                    callback_data=OperatorSalaryPayoutCB().pack(),
+                ),
+            ],
+        ]
+    )
+

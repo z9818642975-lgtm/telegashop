@@ -1,0 +1,29 @@
+from aiogram import Router
+from aiogram.types import CallbackQuery
+from sqlalchemy.ext.asyncio import AsyncSession
+from bot.db import async_session_maker
+
+from bot.constants.callbacks import ClientPaymentDone
+from bot.dao.orders_dao import OrdersDAO
+from bot.middlewares.db import DBSessionMiddleware
+from bot.services.notifier import Notifier
+from bot.db import async_session_maker
+
+router = Router()
+router.callback_query.middleware(DBSessionMiddleware(async_session_maker))
+
+
+@router.callback_query(PaymentConfirm.filter())
+async def payment_confirm(
+    cb: CallbackQuery,
+    callback_data: PaymentConfirm,
+    session: AsyncSession,
+):
+    await OrderDAO.confirm_payment(
+        session=session,
+        order_id=callback_data.order_id,
+    )
+    await Notifier().order_paid(callback_data.order_id)
+    await cb.answer("Платёж подтверждён")
+
+

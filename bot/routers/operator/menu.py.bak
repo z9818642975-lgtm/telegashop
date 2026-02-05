@@ -1,0 +1,85 @@
+from aiogram import Router, F
+from aiogram.types import Message, CallbackQuery
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from bot.keyboards.operator.main import operator_main_menu_kb
+from bot.keyboards.operator.orders import operator_orders_kb
+from bot.keyboards.operator.statistics import operator_stats_kb
+
+from bot.constants.callbacks_operator import (
+    OperatorSalaryStatsCB,
+)
+
+from bot.dao.operator_shift_dao import OperatorShiftDAO
+
+router = Router(name="operator_menu")
+
+# -------------------------
+# ENTRY
+# -------------------------
+
+@router.message(F.text == "О ")
+async def operator_orders(message: Message):
+    await message.answer(
+        "📦 Активные заказы",
+        reply_markup=operator_orders_kb(),
+    )
+
+
+@router.message(F.text == "О ")
+async def operator_stats(message: Message):
+    await message.answer(
+        "📊 Статистика",
+        reply_markup=operator_stats_kb(),
+    )
+
+# -------------------------
+# SHIFT
+# -------------------------
+
+@router.message(F.text == "О ")
+async def shift_start(message: Message, session: AsyncSession):
+    dao = OperatorShiftDAO(session)
+
+    active = await dao.get_active(message.from_user.id)
+    if active:
+        await message.answer("❗ Смена уже активна")
+        return
+
+    await dao.start(
+        operator_id=message.from_user.id,
+        pickup_address="",
+    )
+
+    await message.answer(
+        "✅ Смена начата",
+        reply_markup=operator_main_menu(on_shift=True),
+    )
+
+
+@router.message(F.text == "О ")
+async def shift_stop(message: Message, session: AsyncSession):
+    dao = OperatorShiftDAO(session)
+    await dao.stop(operator_id=message.from_user.id)
+
+    await message.answer(
+        "⛔ Смена завершена",
+        reply_markup=operator_main_menu(on_shift=False),
+    )
+
+# -------------------------
+# STATS CALLBACK
+# -------------------------
+
+@router.callback_query(OperatorSalaryStatsCB.filter())
+async def stats_cb(
+    cb: CallbackQuery,
+    callback_data: OperatorSalaryStatsCB,
+):
+    await cb.message.edit_text(
+        f"📊 Статистика: {callback_data.period}",
+        reply_markup=operator_stats_kb(),
+    )
+    await cb.answer()
+
+

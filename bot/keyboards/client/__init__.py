@@ -1,30 +1,29 @@
 # bot/keyboards/client/__init__.py
-
-from bot.keyboards.client.main import client_main_menu
-
-from bot.keyboards.client.catalog import catalog_kb
-from bot.keyboards.client.quantity import quantity_kb
-
-from bot.keyboards.client.cart import cart_inline_kb
-from bot.keyboards.client.checkout import checkout_kb
-
-from bot.keyboards.client.delivery import delivery_kb
-from bot.keyboards.client.payment import payment_kb, payment_confirm_kb
-from bot.keyboards.client.pickup_actions import pickup_actions_kb
-from bot.keyboards.client.profile import profile_kb
-from bot.keyboards.client.banks import banks_kb
+from .banks import client_banks_kb
+from .cart import client_cart_kb
+from .catalog import client_catalog_kb
+from .checkout import client_checkout_kb
+from .delivery import client_delivery_kb
+from .main import client_main_menu_kb
+from .payment import client_payment_kb
+from .pickup import client_pickup_addresses_kb
+from .pickup_actions import client_pickup_actions_kb
+from .profile import client_profile_kb
+from .quantity import client_quantity_kb
 
 __all__ = [
-    "client_main_menu",
-    "catalog_kb",
-    "quantity_kb",
-    "cart_inline_kb",
-    "checkout_kb",
-    "delivery_kb",
-    "payment_kb",
-    "payment_confirm_kb",
-    "banks_kb",
-    "pickup_actions_kb",
-    "profile_kb",
-]
+    "client_main_menu_kb",
 
+    "client_banks_kb",
+    "client_cart_kb",
+    "client_catalog_kb",
+    "client_checkout_kb",
+    "client_delivery_kb",
+
+    "client_payment_kb",
+
+    "client_pickup_actions_kb",
+    "client_pickup_addresses_kb",
+    "client_profile_kb",
+    "client_quantity_kb",
+]

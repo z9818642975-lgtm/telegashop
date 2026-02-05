@@ -1,36 +1,28 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from bot.models.warehouse import Warehouse
+# bot/keyboards/admin/warehouses.py
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+from bot.constants.callbacks_admin import AdminWarehouseSelectCB
+from bot.constants.callbacks_common import BackCB
 
 
-def warehouses_kb() -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="➕ Создать склад",
-                    callback_data="admin:warehouse:create",
-                ),
-            ],
-            [
-                InlineKeyboardButton(
-                    text="⬅️ Назад",
-                    callback_data="admin:panel",
-                ),
-            ],
-        ]
-    )
+def warehouses_kb(items: list) -> InlineKeyboardMarkup:
+    rows = []
 
+    for wh in items:
+        rows.append([
+            InlineKeyboardButton(
+                text=f"🏬 {wh.title}",
+                callback_data=AdminWarehouseSelectCB(
+                    warehouse_id=wh.id
+                ).pack(),
+            )
+        ])
 
-def warehouses_kb(items: list[Warehouse]) -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text=f"🏬 {wh.title}",
-                    callback_data=f"admin:wh:{wh.id}",
-                )
-            ]
-            for wh in items
-        ]
-    )
+    rows.append([
+        InlineKeyboardButton(
+            text="А ⬅️ В корзину",
+            callback_data=BackCB(target="admin_menu").pack()
+        )
+    ])
 
+    return InlineKeyboardMarkup(inline_keyboard=rows)

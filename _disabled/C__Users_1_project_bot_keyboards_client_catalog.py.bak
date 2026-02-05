@@ -1,0 +1,19 @@
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+
+from bot.constants.callbacks import ClientWarehouseSelectCB
+from bot.models.warehouse import Warehouse
+
+
+def client_catalog_kb(warehouses: list[Warehouse]):
+    kb = InlineKeyboardBuilder()
+
+    for wh in warehouses:
+        kb.button(
+            text=wh.name,
+            callback_data=ClientWarehouseSelectCB(
+                warehouse_id=wh.id
+            ).pack(),
+        )
+
+    kb.adjust(1)
+    return kb.as_markup()

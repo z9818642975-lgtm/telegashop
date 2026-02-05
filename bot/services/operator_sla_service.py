@@ -1,13 +1,13 @@
 # bot/services/operator_sla_service.py
-class OperatorService:
-
-# bot/services/operator_sla_service.py
-class OperatorService:
+from datetime import datetime, timedelta
 
 
-    pass
+class OperatorSLAService:
+    MAX_ACCEPT_DELAY = timedelta(minutes=5)
 
-
-
+    @staticmethod
+    def is_late(accepted_at: datetime, now: datetime | None = None) -> bool:
+        now = now or datetime.utcnow()
+        return now - accepted_at > OperatorSLAService.MAX_ACCEPT_DELAY
 
 

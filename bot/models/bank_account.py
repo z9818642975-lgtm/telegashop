@@ -1,10 +1,16 @@
+# bot/models/bank_account.py
 from __future__ import annotations
 
 import datetime
-from sqlalchemy import Integer, String, Boolean, DateTime
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import TYPE_CHECKING
+
+from sqlalchemy import Boolean, DateTime, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column
 
 from bot.db.base import Base
+
+if TYPE_CHECKING:
+    pass
 
 
 class BankAccount(Base):
@@ -41,3 +47,6 @@ class BankAccount(Base):
         nullable=False,
         default=1,
     )
+
+
+# noqa: F821

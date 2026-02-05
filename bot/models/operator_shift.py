@@ -1,56 +1,55 @@
+# bot/models/operator_shift.py
 from __future__ import annotations
 
-import datetime
+from datetime import datetime
+from typing import TYPE_CHECKING
 
-from sqlalchemy import (
-    Integer,
-    ForeignKey,
-    DateTime,
-    Boolean,
-    String,
-)
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from bot.db.base import Base
+
+if TYPE_CHECKING:
+    pass
 
 
 class OperatorShift(Base):
     __tablename__ = "operator_shifts"
 
-    id: Mapped[int] = mapped_column(
-        Integer,
-        primary_key=True,
-    )
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
 
+    # 🔑 ВСЕГДА tg_id
     operator_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"),
+        BigInteger,
+        ForeignKey("users.tg_id"),
+        nullable=False,
         index=True,
+    )
+
+    pickup_address: Mapped[str] = mapped_column(
+        Text,
         nullable=False,
     )
 
-    # 📍 Адрес самовывоза (обязателен)
-    pickup_address: Mapped[str | None] = mapped_column(
-        String(255),
-        nullable=True,
-    )
-
-    started_at: Mapped[datetime.datetime] = mapped_column(
+    started_at: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,
     )
 
-    ended_at: Mapped[datetime.datetime | None] = mapped_column(
-        DateTime,
-        nullable=True,
-    )
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime)
 
-    last_activity_at: Mapped[datetime.datetime] = mapped_column(
-        DateTime,
-        nullable=False,
-    )
+    last_activity_at: Mapped[datetime | None] = mapped_column(DateTime)
 
-    # ⏱ предупреждения
     warned_15: Mapped[bool] = mapped_column(Boolean, default=False)
     warned_17: Mapped[bool] = mapped_column(Boolean, default=False)
     warned_20: Mapped[bool] = mapped_column(Boolean, default=False)
 
+    auto_closed: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    # relationship нужен watcher'у
+    operator = relationship(
+        "User",
+        primaryjoin="OperatorShift.operator_id == User.tg_id",
+        viewonly=True,
+    )
+# noqa: F821

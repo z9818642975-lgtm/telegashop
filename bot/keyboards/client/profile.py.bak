@@ -1,0 +1,18 @@
+from bot.constants.callbacks_client import ClientCartOpen, BackMenu
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+def client_profile_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text="📦 Мои заказы",
+                callback_data=ClientCartOpen().pack(),
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                text="⬅️ Назад",
+                callback_data=BackMenu().pack(),
+            ),
+        ],
+    ])

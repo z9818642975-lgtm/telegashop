@@ -1,0 +1,17 @@
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from bot.constants.callbacks import AdminOrderForce
+
+
+def force_actions_kb(order_id: int) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="🛑 Принудительно закрыть",
+                    callback_data=AdminOrderForce(
+                        order_id=order_id
+                    ).pack(),
+                ),
+            ],
+        ]
+    )

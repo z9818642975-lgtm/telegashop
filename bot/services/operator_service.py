@@ -7,26 +7,10 @@
 
 from __future__ import annotations
 
-
-
-
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
-
-
-
-
 from bot.dao.shifts_dao import OperatorShiftDAO
-
-
 from bot.dao.users_dao import UsersDAO
-
-
-
-
-
-
 
 
 class OperatorService:
@@ -129,6 +113,8 @@ class OperatorService:
 
 
         return await self.shifts.get_active(operator_id)
+
+
 
 
 

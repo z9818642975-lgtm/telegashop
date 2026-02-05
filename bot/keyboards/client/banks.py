@@ -1,30 +1,31 @@
 # bot/keyboards/client/banks.py
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+from bot.constants.callbacks_client import ClientPayBank, ClientPaySBP
 
 
-def banks_kb() -> InlineKeyboardMarkup:
+def client_banks_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
                     text="🏦 Сбер",
-                    callback_data="client:bank:sber",
+                    callback_data=ClientPayBank(bank_id=1).pack(),
                 ),
                 InlineKeyboardButton(
                     text="🏦 Т-Банк",
-                    callback_data="client:bank:tinkoff",
+                    callback_data=ClientPayBank(bank_id=2).pack(),
                 ),
             ],
             [
                 InlineKeyboardButton(
                     text="🏦 Альфа",
-                    callback_data="client:bank:alfa",
+                    callback_data=ClientPayBank(bank_id=3).pack(),
                 ),
                 InlineKeyboardButton(
-                    text="⚡ СБП",
-                    callback_data="client:bank:sbp",
+                    text="📱 СБП",
+                    callback_data=ClientPaySBP().pack(),
                 ),
             ],
         ]
     )
-

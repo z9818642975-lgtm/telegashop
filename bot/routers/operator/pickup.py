@@ -1,12 +1,14 @@
-from aiogram import Router, F
-from aiogram.types import CallbackQuery, Message
+# bot/routers/operator/pickup.py
+from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
+from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.filters.role import RoleFilter
-from bot.models.enums import UserRole
-from bot.fsm.operator_pickup_fsm import OperatorPickupFSM
+from bot.constants.callbacks_operator import OperatorPickupStartCB
 from bot.dao.orders_dao import OrdersDAO
+from bot.filters.role import RoleFilter
+from bot.fsm.operator_pickup_fsm import OperatorPickupFSM
+from bot.models.enums import UserRole
 from bot.services.pickup_timer import start_pickup_timer
 
 router = Router(name="operator_pickup_ready")
@@ -14,13 +16,13 @@ router.message.filter(RoleFilter(UserRole.OPERATOR))
 router.callback_query.filter(RoleFilter(UserRole.OPERATOR))
 
 
-@router.callback_query(F.data.startswith("operator:ready:"))
+@router.callback_query(OperatorPickupStartCB.filter())
 async def start_ready(
     call: CallbackQuery,
+    callback_data: OperatorPickupStartCB,
     state: FSMContext,
 ):
-    order_id = int(call.data.split(":")[-1])
-    await state.update_data(order_id=order_id)
+    await state.update_data(order_id=callback_data.order_id)
     await state.set_state(OperatorPickupFSM.comment)
 
     await call.message.answer("✍️ Опишите самовывоз")
@@ -58,4 +60,3 @@ async def pickup_photo(
     await state.clear()
 
     await message.answer("✅ Клиент будет уведомлён автоматически")
-

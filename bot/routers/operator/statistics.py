@@ -1,0 +1,50 @@
+# bot/routers/operator/statistics.py
+from aiogram import F, Router
+from aiogram.types import CallbackQuery, Message
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from bot.constants.callbacks_operator import OperatorSalaryStatsCB
+from bot.dao.operator_salary_dao import OperatorSalaryDAO
+from bot.keyboards.operator.statistics import operator_stats_kb
+
+router = Router(name="operator_statistics")
+
+
+@router.message(F.text == "О 📊 Статистика и ЗП")
+async def open_stats(message: Message):
+    await message.answer(
+        "📊 Ваша статистика",
+        reply_markup=operator_stats_kb(),
+    )
+
+
+@router.callback_query(OperatorSalaryStatsCB.filter())
+async def stats_detail(
+    cb: CallbackQuery,
+    callback_data: OperatorSalaryStatsCB,
+    session: AsyncSession,
+):
+    if callback_data.period == "back":
+        await cb.message.delete()
+        await cb.answer()
+        return
+
+    dao = OperatorSalaryDAO(session)
+    stats = await dao.get_stats(
+        operator_tg_id=cb.from_user.id,
+        period=callback_data.period,
+    )
+
+    text = (
+        f"📊 <b>Статистика ({callback_data.period})</b>\n\n"
+        f"🧾 Заказов: {stats.orders}\n"
+        f"💰 Заработано: {stats.amount} ₽"
+    )
+
+    await cb.message.edit_text(
+        text,
+        reply_markup=operator_stats_kb(),
+    )
+    await cb.answer()
+
+

@@ -8,8 +8,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.models.warehouse import Warehouse
-from bot.models.warehouse_product import WarehouseProduct
 from bot.models.warehouse_movement import WarehouseMovement
+from bot.models.warehouse_product import WarehouseProduct
 
 
 class StockError(Exception):
@@ -23,18 +23,12 @@ class StockError(Exception):
 class WarehousesDAO:
     """
     DAO ТОЛЬКО ДЛЯ СКЛАДОВ И ОСТАТКОВ
-
-    ❗ Не знает об операторах
-    ❗ Не знает о сменах
-    ❗ Не знает о pickup_address
     """
 
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    # --------------------------------------------------------
-    # WAREHOUSES
-    # --------------------------------------------------------
+    # -------------------- WAREHOUSES --------------------
 
     async def list_active(self) -> List[Warehouse]:
         res = await self.session.execute(
@@ -47,9 +41,29 @@ class WarehousesDAO:
     async def get_by_id(self, warehouse_id: int) -> Warehouse | None:
         return await self.session.get(Warehouse, warehouse_id)
 
-    # --------------------------------------------------------
-    # STOCK
-    # --------------------------------------------------------
+    async def get_admin(self) -> Warehouse | None:
+        res = await self.session.execute(
+            select(Warehouse)
+            .where(
+                Warehouse.is_admin.is_(True),
+                Warehouse.is_active.is_(True),
+            )
+            .limit(1)
+        )
+        return res.scalar_one_or_none()
+
+    async def get_operator(self, operator_id: int) -> Warehouse | None:
+        res = await self.session.execute(
+            select(Warehouse)
+            .where(
+                Warehouse.operator_id == operator_id,
+                Warehouse.is_active.is_(True),
+            )
+            .limit(1)
+        )
+        return res.scalar_one_or_none()
+
+    # -------------------- STOCK --------------------
 
     async def get_stock(
         self,
@@ -140,13 +154,12 @@ class WarehousesDAO:
 
 
 # ============================================================
-# WAREHOUSE MOVEMENT DAO (AUDIT / WRITE-OFF)
+# WAREHOUSE MOVEMENT DAO (AUDIT)
 # ============================================================
 
 class WarehouseMovementDAO:
     """
     Аудит движения товара.
-    Используется при списании заказов.
     """
 
     def __init__(self, session: AsyncSession):
@@ -174,4 +187,3 @@ class WarehouseMovementDAO:
         self.session.add(movement)
         await self.session.flush()
         return movement
-

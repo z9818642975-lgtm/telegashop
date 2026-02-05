@@ -1,20 +1,11 @@
 # bot/services/admin_notify_service.py
-from __future__ import annotations
-
 # bot/services/admin_notify_service.py
 from __future__ import annotations
 
-
 from aiogram import Bot
 
-
 from bot.config import settings
-
-
 from bot.core.logger import logger
-
-
-
 
 
 class AdminNotifyService:
@@ -99,6 +90,8 @@ class AdminNotifyService:
 
 
         await self._send(bot, f"⛔ Нет онлайн оператора для самовывоза\nЗаказ #{order_id}")
+
+
 
 
 

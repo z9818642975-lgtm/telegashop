@@ -1,0 +1,138 @@
+from aiogram.filters.callback_data import CallbackData
+
+# --------------------
+# COMMON
+# --------------------
+
+class BackMenu(CallbackData, prefix="back_menu"):
+    pass
+
+class BackCatalog(CallbackData, prefix="back_catalog"):
+    pass
+
+
+# --------------------
+# CLIENT — CATALOG / CART
+# --------------------
+
+class CatalogOpen(CallbackData, prefix="catalog_open"):
+    pass
+
+class ProductOpen(CallbackData, prefix="product_open"):
+    product_id: int
+
+class ClientCartOpen(CallbackData, prefix="client_cart_open"):
+    pass
+
+class ClientCartClear(CallbackData, prefix="client_cart_clear"):
+    pass
+
+class ClientCartCheckout(CallbackData, prefix="client_cart_checkout"):
+    pass
+
+
+# --------------------
+# CLIENT — ITEMS / QTY
+# --------------------
+
+class ClientItemQty(CallbackData, prefix="client_item_qty"):
+    item_id: int
+    qty: int
+
+class ClientItemRemove(CallbackData, prefix="client_item_remove"):
+    item_id: int
+
+
+# --------------------
+# CLIENT — DELIVERY / PAYMENT
+# --------------------
+
+class ClientDeliveryPickup(CallbackData, prefix="client_delivery_pickup"):
+    pass
+
+class ClientDeliveryCourier(CallbackData, prefix="client_delivery_courier"):
+    pass
+
+class ClientDeliveryPrice(CallbackData, prefix="client_delivery_price"):
+    method: str
+
+class ClientPayBank(CallbackData, prefix="client_pay_bank"):
+    bank_id: int
+
+class ClientPaySBP(CallbackData, prefix="client_pay_sbp"):
+    pass
+
+class ClientPaymentDone(CallbackData, prefix="client_payment_done"):
+    pass
+
+class ClientPaymentCancel(CallbackData, prefix="client_payment_cancel"):
+    pass
+
+# =========================================================
+# OPERATOR
+# =========================================================
+
+class OpShiftStart(CallbackData, prefix="op_shift_start"):
+    pass
+
+
+class OpShiftStop(CallbackData, prefix="op_shift_stop"):
+    pass
+
+
+class OperatorReady(CallbackData, prefix="operator_ready"):
+    order_id: int
+
+
+class OperatorDeliverySent(CallbackData, prefix="operator_delivery_sent"):
+    order_id: int
+
+
+class OperatorCheckAccept(CallbackData, prefix="operator_check_accept"):
+    order_id: int
+
+
+class OperatorCheckReject(CallbackData, prefix="operator_check_reject"):
+    order_id: int
+
+
+# =========================================================
+# ADMIN
+# =========================================================
+
+class AdminProducts(CallbackData, prefix="admin_products"):
+    pass
+
+
+class AdminOperators(CallbackData, prefix="admin_operators"):
+    pass
+
+
+class AdminBanks(CallbackData, prefix="admin_banks"):
+    pass
+
+
+class AdminOrders(CallbackData, prefix="admin_orders"):
+    pass
+
+
+class AdminProductCard(CallbackData, prefix="admin_product_card"):
+    product_id: int
+
+
+class AdminProductToggle(CallbackData, prefix="admin_product_toggle"):
+    product_id: int
+
+
+class AdminOperatorToggle(CallbackData, prefix="admin_operator_toggle"):
+    operator_id: int
+
+
+class AdminBankToggle(CallbackData, prefix="admin_bank_toggle"):
+    bank_id: int
+
+
+class AdminOrderForce(CallbackData, prefix="admin_order_force"):
+    order_id: int
+
+

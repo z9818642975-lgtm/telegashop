@@ -1,32 +1,12 @@
 # bot/services/order_item_status.py
-from sqlalchemy.ext.asyncio import AsyncSession
-
 # bot/services/order_item_status.py
-from sqlalchemy.ext.asyncio import AsyncSession
-
-
 from sqlalchemy import select
-
-
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-
-
-
-
-from bot.models import Order, OrderItem
-
-
-from bot.models.enums import OrderStatus, OrderItemStatus
-
-
 from bot.events.order_item_events import OrderItemStatusChanged
-
-
-
-
-
-
+from bot.models import Order, OrderItem
+from bot.models.enums import OrderItemStatus, OrderStatus
 
 
 class OrderItemStatusService:
@@ -279,6 +259,8 @@ class OrderItemStatusService:
 
 
         return OrderStatus.NEW
+
+
 
 
 

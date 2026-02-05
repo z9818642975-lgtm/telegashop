@@ -1,4 +1,5 @@
-from aiogram.fsm.state import StatesGroup, State
+# bot/fsm/checkout_fsm.py
+from aiogram.fsm.state import State, StatesGroup
 
 
 class CheckoutFSM(StatesGroup):
@@ -13,4 +14,5 @@ class CheckoutFSM(StatesGroup):
     requisites = State()
     confirm = State()
     wait_check = State()
+
 

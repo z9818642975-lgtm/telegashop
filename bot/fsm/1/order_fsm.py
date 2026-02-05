@@ -1,15 +1,9 @@
-# -*- coding: utf-8 -*- order_fsm.py
 # bot/fsm/1/order_fsm.py
 # bot/fsm/1/order_fsm.py
+# bot/fsm/1/order_fsm.py
 
 
-from aiogram.fsm.state import StatesGroup, State
-
-
-
-
-
-
+from aiogram.fsm.state import State, StatesGroup
 
 
 class OrderFSM(StatesGroup):
@@ -31,6 +25,7 @@ class OrderFSM(StatesGroup):
 
 
     confirm_payment = State()
+
 
 
 

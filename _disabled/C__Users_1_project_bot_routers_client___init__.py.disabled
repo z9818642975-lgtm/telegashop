@@ -1,0 +1,16 @@
+from aiogram import Router
+
+from .menu import router as reply_router   # ← ВАЖНО
+from .catalog import router as catalog_router
+from .cart import router as cart_router
+from .checkout import router as checkout_router
+from .payment import router as payment_router
+
+router = Router(name="client")
+
+# DISABLED BY SCRIPT: router.include_router(reply_router)          # ← ВАЖНО
+# DISABLED BY SCRIPT: router.include_router(catalog_router)
+# DISABLED BY SCRIPT: router.include_router(cart_router)
+# DISABLED BY SCRIPT: router.include_router(checkout_router)
+# DISABLED BY SCRIPT: router.include_router(payment_router)
+

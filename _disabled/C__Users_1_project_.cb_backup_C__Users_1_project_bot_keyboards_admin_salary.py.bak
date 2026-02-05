@@ -1,0 +1,17 @@
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from bot.constants.callbacks import AdminSalaryPayCB
+from bot.models.salary_accrual import SalaryAccrual
+
+
+def admin_salary_list_kb(rows: list[SalaryAccrual]) -> InlineKeyboardMarkup:
+    keyboard = []
+
+    for r in rows:
+        keyboard.append([
+            InlineKeyboardButton(
+                text=f"👷 {r.operator_id} • {r.amount} ₽",
+                callback_data=AdminSalaryPayCB(accrual_id=r.id),
+            )
+        ])
+
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)

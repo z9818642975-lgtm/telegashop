@@ -1,59 +1,38 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from bot.constants.callbacks import CB
-
-
-def payment_method_kb() -> InlineKeyboardMarkup:
-    """
-    Выбор способа оплаты
-    """
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="🏦 Банковская карта",
-                    callback_data=CB.PAY_BANK.format(bank_id="any"),
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    text="📱 СБП",
-                    callback_data=CB.PAY_SBP,
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    text="⬅️ Назад",
-                    callback_data=CB.CART_OPEN,
-                )
-            ],
-        ]
-    )
+from bot.constants.callbacks_client import (
+    ClientPayBank,
+    ClientPaySBP,
+)
+from bot.constants.callbacks_common import ClientPaymentCancel
 
 
-def payment_confirm_kb() -> InlineKeyboardMarkup:
-    """
-    Подтверждение оплаты
-    """
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="✅ Я оплатил",
-                    callback_data=CB.PAYMENT_DONE,
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    text="❌ Отмена",
-                    callback_data=CB.PAYMENT_CANCEL,
-                )
-            ],
-        ]
-    )
-
-
-# экспорт для client/__init__.py
-def payment_kb() -> InlineKeyboardMarkup:
-    return payment_method_kb()
-
+def client_payment_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text="🏦 Сбер",
+                callback_data=ClientPayBank(bank_id=1).pack(),
+            ),
+            InlineKeyboardButton(
+                text="🏦 Т-Банк",
+                callback_data=ClientPayBank(bank_id=2).pack(),
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                text="🏦 Альфа",
+                callback_data=ClientPayBank(bank_id=3).pack(),
+            ),
+            InlineKeyboardButton(
+                text="📱 СБП",
+                callback_data=ClientPaySBP().pack(),
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                text="⬅️ Назад",
+                callback_data=ClientPaymentCancel().pack(),
+            )
+        ],
+    ])

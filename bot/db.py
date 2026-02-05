@@ -1,48 +1,20 @@
 # bot/db.py
-import asyncio
 
 # bot/db.py
-import asyncio
 
 
 import logging
-
-
 from pathlib import Path
 
-
-
-
-
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
-
-
     AsyncEngine,
-
-
     AsyncSession,
-
-
     async_sessionmaker,
-
-
     create_async_engine,
-
-
 )
 
-
-from sqlalchemy import text
-
-
-
-
-
 from bot.config import settings
-
-
-
-
 
 logger = logging.getLogger("telegashop")
 
@@ -261,6 +233,7 @@ async def init_db():
 
 
     logger.info("✅ DB bootstrap finished")
+
 
 
 

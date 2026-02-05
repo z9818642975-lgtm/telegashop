@@ -6,40 +6,15 @@
 
 
 import asyncio
-
-
 from datetime import datetime
-
-
 from typing import Callable
 
-
-
-
-
 from aiogram import Bot
-
-
 from sqlalchemy import select
-
-
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-
-
-
-
-from bot.models.operator_shift import OperatorShift
-
-
 from bot.dao.warehouses_dao import WarehousesDAO
-
-
-
-
-
-
-
+from bot.models.operator_shift import OperatorShift
 
 # Тайминги (минуты)
 
@@ -342,6 +317,7 @@ class OperatorOnlineService:
 
 
             pass
+
 
 
 

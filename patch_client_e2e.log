@@ -1,0 +1,15 @@
+== CLIENT E2E PATCH START ==
+Callbacks normalized: C:\Users\1\project\bot\constants\callbacks.py
+Callbacks normalized: C:\Users\1\project\bot\keyboards\client\catalog.py
+Callbacks normalized: C:\Users\1\project\bot\keyboards\client\checkout.py
+Callbacks normalized: C:\Users\1\project\bot\keyboards\client\delivery.py
+Callbacks normalized: C:\Users\1\project\bot\keyboards\client\payment.py
+Callbacks normalized: C:\Users\1\project\bot\keyboards\client\pickup.py
+Callbacks normalized: C:\Users\1\project\bot\routers\client\cart.py
+pickup_select fixed: C:\Users\1\project\bot\routers\client\checkout.py
+Removed local render_catalog
+Removed local render_cart
+FSM OK
+ERROR: pickup_select remnants:
+C:\Users\1\project\bot\routers\client\checkout.py
+== CLIENT E2E PATCH END ==

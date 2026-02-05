@@ -1,0 +1,25 @@
+from __future__ import annotations
+from bot.constants.callbacks import *
+from aiogram import Router, F
+from aiogram.types import CallbackQuery
+from sqlalchemy.ext.asyncio import AsyncSession
+
+router = Router(name="client_back")
+
+
+@router.callback_query(F.data == BackCatalog)
+async def back_to_catalog(
+    cb: CallbackQuery,
+    session: AsyncSession,
+):
+    await cq.answer()
+
+
+
+
+
+
+
+
+
+

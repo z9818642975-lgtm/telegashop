@@ -1,346 +1,78 @@
 # bot/routers/operator/items.py
-from aiogram import Router, F
+from __future__ import annotations
 
-# bot/routers/operator/items.py
-from aiogram import Router, F
-
-
-from aiogram.types import Message
-
-
-from aiogram.fsm.context import FSMContext
-
-
+from aiogram import Router
+from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
-
-
-
-
+from bot.constants.callbacks_common import (
+    OperatorCheckAcceptCB,
+    OperatorCheckRejectCB,
+    OperatorDeliverySentCB,
+    OperatorItemCB,
+)
+from bot.dao.orders import OrdersDAO
 from bot.filters.role import RoleFilter
-
-
-from bot.models.enums import UserRole
-
-
-from bot.models.user import User
-
-
-from bot.dao.order_items import OrderItemDAO
-
-
-from bot.services.operator_guard import ensure_operator_owns_item
-
-
-from bot.fsm.operator_item_fsm import OperatorItemFSM
-
-
-
-
-
-from bot.middlewares.shift_guard import ShiftGuardMiddleware
-
-
-
-
+from bot.keyboards.operator.items import (
+    operator_item_actions_kb,
+)
 
 router = Router(name="operator_items")
+router.message.filter(RoleFilter.operator())
 
 
-
-
-
-router.message.middleware(ShiftGuardMiddleware())
-
-
-
-
-
-router.message.filter(RoleFilter(UserRole.OPERATOR))
-
-
-
-
-
-
-
-
-@router.message(F.text.startswith("/accept "))
-
-
-async def accept_item_handler(
-
-
-    message: Message,
-
-
-    state: FSMContext,
-
-
-    session: AsyncSession,
-
-
-    user: User,
-
-
-):
-
-
-    try:
-
-
-        item_id = int(message.text.split()[1])
-
-
-
-
-
-        item = await OrderItemDAO.accept(
-
-
-            session=session,
-
-
-            item_id=item_id,
-
-
-            operator_id=user.id,
-
-
-        )
-
-
-        await session.commit()
-
-
-
-
-
-    except Exception as e:
-
-
-        await session.rollback()
-
-
-        await message.answer(f"❌ {e}")
-
-
+@router.callback_query(OperatorItemCB.filter())
+async def operator_item(cb: CallbackQuery, callback_data: OperatorItemCB, session: AsyncSession):
+    order_item = await OrdersDAO(session).get_item(callback_data.order_item_id)
+    if not order_item:
+        await cb.answer("Позиция не найдена", show_alert=True)
         return
 
-
-
-
-
-    await state.set_state(OperatorItemFSM.accepted)
-
-
-    await state.update_data(item_id=item.id)
-
-
-    await message.answer(f"✅ Позиция #{item.id} принята")
-
-
-
-
-
-
-
-
-@router.message(OperatorItemFSM.accepted, F.text == "/paid")
-
-
-async def paid_handler(
-
-
-    message: Message,
-
-
-    state: FSMContext,
-
-
-    session: AsyncSession,
-
-
-    user: User,
-
-
-):
-
-
-    data = await state.get_data()
-
-
-
-
-
-    try:
-
-
-        item = await OrderItemDAO.mark_paid(
-
-
-            session=session,
-
-
-            item_id=data["item_id"],
-
-
-        )
-
-
-
-
-
-        await ensure_operator_owns_item(
-
-
-            session=session,
-
-
-            operator_id=user.id,
-
-
-            item_id=item.id,
-
-
-        )
-
-
-
-
-
-        await session.commit()
-
-
-
-
-
-    except Exception as e:
-
-
-        await session.rollback()
-
-
-        await message.answer(f"❌ {e}")
-
-
-        return
-
-
-
-
-
-    await state.set_state(OperatorItemFSM.paid)
-
-
-    await message.answer("💰 Оплата подтверждена")
-
-
-
-
-
-
-
-
-@router.message(OperatorItemFSM.paid, F.text == "/done")
-
-
-async def done_handler(
-
-
-    message: Message,
-
-
-    state: FSMContext,
-
-
-    session: AsyncSession,
-
-
-    user: User,
-
-
-):
-
-
-    data = await state.get_data()
-
-
-
-
-
-    try:
-
-
-        item = await OrderItemDAO.complete(
-
-
-            session=session,
-
-
-            item_id=data["item_id"],
-
-
-        )
-
-
-
-
-
-        await ensure_operator_owns_item(
-
-
-            session=session,
-
-
-            operator_id=user.id,
-
-
-            item_id=item.id,
-
-
-        )
-
-
-
-
-
-        await session.commit()
-
-
-
-
-
-    except Exception as e:
-
-
-        await session.rollback()
-
-
-        await message.answer(f"❌ {e}")
-
-
-        return
-
-
-
-
-
-    await state.clear()
-
-
-    await message.answer(
-
-
-        "🏁 Позиция завершена\n"
-
-
-        "💸 Зарплата начислена"
-
-
+    await cb.message.edit_text(
+        f"📦 <b>Позиция заказа</b>\n"
+        f"Товар: {order_item.product_name}\n"
+        f"Кол-во: {order_item.qty}\n"
+        f"Статус: {order_item.status}",
+        reply_markup=operator_item_actions_kb(order_item),
     )
+    await cb.answer()
 
 
+@router.callback_query(OperatorCheckAcceptCB.filter())
+async def operator_check_accept(
+    cb: CallbackQuery,
+    callback_data: OperatorCheckAcceptCB,
+    session: AsyncSession,
+):
+    order = await OrdersDAO(session).accept_check(callback_data.order_id)
+    if not order:
+        await cb.answer("Заказ не найден", show_alert=True)
+        return
+
+    await cb.message.edit_text("✅ Чек принят. Заказ в работе.")
+    await cb.answer()
 
 
+@router.callback_query(OperatorCheckRejectCB.filter())
+async def operator_check_reject(
+    cb: CallbackQuery,
+    callback_data: OperatorCheckRejectCB,
+    session: AsyncSession,
+):
+    order = await OrdersDAO(session).reject_check(callback_data.order_id)
+    if not order:
+        await cb.answer("Заказ не найден", show_alert=True)
+        return
 
+    await cb.message.edit_text("❌ Чек отклонён. Клиент уведомлён.")
+    await cb.answer()
+
+
+@router.callback_query(OperatorDeliverySentCB.filter())
+async def operator_delivery_sent(
+    cb: CallbackQuery,
+    callback_data: OperatorDeliverySentCB,
+    session: AsyncSession,
+):
+    await OrdersDAO(session).mark_delivery_sent(callback_data.order_id)
+    await cb.answer("Доставка отмечена как отправленная")

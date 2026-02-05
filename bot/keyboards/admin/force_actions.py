@@ -1,6 +1,7 @@
 # bot/keyboards/admin/force_actions.py
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from bot.constants.callbacks_admin import AdminOrderForce
 
 
 def force_actions_kb(order_id: int) -> InlineKeyboardMarkup:
@@ -8,16 +9,11 @@ def force_actions_kb(order_id: int) -> InlineKeyboardMarkup:
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="⛔ Принудительно закрыть",
-                    callback_data=f"admin:force:close:{order_id}",
-                ),
-            ],
-            [
-                InlineKeyboardButton(
-                    text="🔄 Вернуть в работу",
-                    callback_data=f"admin:force:reopen:{order_id}",
+                    text="А 🛑 Принудительно закрыть",
+                    callback_data=AdminOrderForce(
+                        order_id=order_id
+                    ).pack(),
                 ),
             ],
         ]
     )
-

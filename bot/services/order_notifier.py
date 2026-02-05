@@ -1,20 +1,10 @@
 # bot/services/order_notifier.py
 from aiogram import Bot
 
-# bot/services/order_notifier.py
-from aiogram import Bot
-
-
-from bot.models.order_item import OrderItem
-
-
 from bot.models.enums import OrderItemStatus
 
-
-
-
-
-
+# bot/services/order_notifier.py
+from bot.models.order_item import OrderItem
 
 
 class OrderNotifier:
@@ -66,6 +56,8 @@ class OrderNotifier:
 
 
             await self.bot.send_message(client_id, text)
+
+
 
 
 

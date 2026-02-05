@@ -2,22 +2,9 @@
 from aiogram.filters import BaseFilter
 
 # bot/filters/role.py
-from aiogram.filters import BaseFilter
-
-
-from aiogram.types import Message, CallbackQuery
-
-
-
-
+from aiogram.types import CallbackQuery, Message
 
 from bot.models.enums import UserRole
-
-
-
-
-
-
 
 
 class RoleFilter(BaseFilter):
@@ -54,6 +41,7 @@ class RoleFilter(BaseFilter):
 
 
         return user.role == self.role
+
 
 
 

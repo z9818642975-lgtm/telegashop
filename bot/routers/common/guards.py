@@ -1,43 +1,19 @@
 # bot/routers/common/guards.py
-class GuardError(Exception):
-
-# bot/routers/common/guards.py
-class GuardError(Exception):
+from aiogram.types import TelegramObject
 
 
-    pass
+def client_guard(event: TelegramObject, data: dict) -> bool:
+    user = data.get("user")
+    return bool(user and user.role == "client")
 
 
+def operator_guard(event: TelegramObject, data: dict) -> bool:
+    user = data.get("user")
+    return bool(user and user.role == "operator")
 
 
-
-
-
-
-def guard_order_status(order, allowed: list[str]):
-
-
-    if order.status not in allowed:
-
-
-        raise GuardError("Недопустимый статус заказа")
-
-
-
-
-
-
-
-
-def guard_once(condition: bool, message: str):
-
-
-    if condition:
-
-
-        raise GuardError(message)
-
-
-
+def admin_guard(event: TelegramObject, data: dict) -> bool:
+    user = data.get("user")
+    return bool(user and user.role == "admin")
 
 

@@ -1,3 +1,4 @@
+# bot/services/role_service.py
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.config import settings
@@ -31,3 +32,5 @@ class RoleService:
             return user, UserRole.OPERATOR
 
         return user, UserRole.CLIENT
+
+

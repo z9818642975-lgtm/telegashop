@@ -1,0 +1,15 @@
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from bot.constants.callbacks import OperatorHeartbeatCB
+
+
+def iam_here_kb(shift_id: int) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="🟢 Я на месте",
+                    callback_data=OperatorHeartbeatCB(shift_id=shift_id).pack(),
+                )
+            ]
+        ]
+    )

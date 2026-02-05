@@ -62,3 +62,4 @@ class BusinessLogicError(AppError):
     def __init__(self, message: str = "Ошибка бизнес-логики"):
         super().__init__(message)
 
+

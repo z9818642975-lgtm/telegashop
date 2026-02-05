@@ -1,18 +1,39 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+# bot/keyboards/operator/order_item.py
+from __future__ import annotations
 
-def order_item_actions_kb(item_id: int) -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="🕒 10 минут",
-                    callback_data=f"client:item:wait:{item_id}",
-                ),
-                InlineKeyboardButton(
-                    text="✅ Забрал",
-                    callback_data=f"client:item:done:{item_id}",
-                ),
-            ]
-        ]
-    )
+from aiogram.types import InlineKeyboardMarkup
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from bot.constants.callbacks_operator import OperatorCheckCB, OperatorDeliverySentCB
+from bot.models.order_item import OrderItem
+
+
+def operator_item_actions_kb(item: OrderItem) -> InlineKeyboardMarkup:
+    kb = InlineKeyboardBuilder()
+
+    if item.order.need_check:
+        kb.button(
+            text="О 💰 Оплата прошла",
+            callback_data=OperatorCheckCB(
+                order_id=item.order_id,
+                result="paid",
+            ).pack(),
+        )
+        kb.button(
+            text="О ❌ Оплата не прошла",
+            callback_data=OperatorCheckCB(
+                order_id=item.order_id,
+                result="failed",
+            ).pack(),
+        )
+
+    if item.order.can_mark_delivered:
+        kb.button(
+            text="О 🚚 Отправлено",
+            callback_data=OperatorDeliverySentCB(
+                order_id=item.order_id
+            ).pack(),
+        )
+
+    kb.adjust(1)
+    return kb.as_markup()

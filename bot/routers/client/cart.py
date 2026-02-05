@@ -1,88 +1,70 @@
-from __future__ import annotations
-
-from aiogram import Router, F
+# bot/routers/client/cart.py
+from aiogram import Router
 from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.constants.callbacks import CB
+from bot.constants.callbacks_common import (
+    ClientCartCheckout,
+    ClientCartClear,
+    ClientCartOpen,
+    ClientItemQty,
+    ClientItemRemove,
+)
 from bot.dao.orders_dao import OrdersDAO
-from bot.dao.order_items import OrderItemDAO
-from bot.keyboards.client.cart import cart_inline_kb
-from bot.routers.client.catalog import render_catalog
+from bot.keyboards.client.cart import client_cart_kb
 
 router = Router(name="client_cart")
 
 
-@router.callback_query(F.data == ("client:cart:open:"))
-async def open_cart(cb: CallbackQuery, session: AsyncSession, user):
-    await render_cart(cb, session, user)
-
-
-async def render_cart(cb: CallbackQuery, session: AsyncSession, user):
-    orders = OrdersDAO(session)
-    order = await orders.get_cart(user.id)
-
-    if not order or not order.items:
-        await cb.message.edit_text(
-            "🧺 <b>Корзина пуста</b>\n\nВыберите товары в каталоге.",
-            reply_markup=None,
-        )
-        return
-
-    total = sum(item.qty * item.price for item in order.items)
-
-    lines: list[str] = ["🧺 <b>Корзина</b>\n"]
-    for item in order.items:
-        lines.append(
-            f"• {item.product.title} × {item.qty} = {item.qty * item.price} ₽"
-        )
-
-    lines.append(f"\n<b>Итого:</b> {total} ₽")
+@router.callback_query(ClientCartOpen.filter())
+async def cart_open(cb: CallbackQuery, session: AsyncSession):
+    dao = OrdersDAO(session)
+    items = await dao.get_cart_items(user_id=cb.from_user.id)
 
     await cb.message.edit_text(
-        "\n".join(lines),
-        reply_markup=cart_inline_kb(order.items),
+        "🛒 Ваша корзина",
+        reply_markup=client_cart_kb(items),
+    )
+    await cb.answer()
+
+
+@router.callback_query(ClientItemQty.filter())
+async def change_qty(
+    cb: CallbackQuery,
+    callback_data: ClientItemQty,
+    session: AsyncSession,
+):
+    dao = OrdersDAO(session)
+    await dao.set_item_qty(
+        item_id=callback_data.item_id,
+        qty=callback_data.qty,
     )
 
-
-# ❌ УДАЛЕНИЕ КОНКРЕТНОГО ТОВАРА
-@router.callback_query(F.data.startswith("client:item:remove:"))
-async def remove_item(cb: CallbackQuery, session: AsyncSession, user):
-    item_id = int(cb.data.split(":")[2])
-
-    items = OrderItemDAO(session)
-    item = await items.get_by_id(item_id=item_id)
-
-    if item:
-        await session.delete(item)
-        await session.commit()
-
-    await render_cart(cb, session, user)
+    await cb.answer("Количество обновлено")
 
 
-# 🔢 УСТАНОВКА КОЛИЧЕСТВА (НЕ СУММИРОВАНИЕ)
-@router.callback_query(F.data.startswith("client:item:qty:"))
-async def set_item_qty(cb: CallbackQuery, session: AsyncSession, user):
-    _, _, item_id, qty = cb.data.split(":")
-    item_id = int(item_id)
-    qty = int(qty)
+@router.callback_query(ClientItemRemove.filter())
+async def remove_item(
+    cb: CallbackQuery,
+    callback_data: ClientItemRemove,
+    session: AsyncSession,
+):
+    dao = OrdersDAO(session)
+    await dao.remove_item(item_id=callback_data.item_id)
 
-    items = OrderItemDAO(session)
-    item = await items.get_by_id(item_id=item_id)
-
-    if item:
-        # 🔴 КРИТИЧНО: КОЛИЧЕСТВО ПОЛНОСТЬЮ ЗАМЕНЯЕТСЯ
-        item.qty = qty
-        await session.commit()
-
-    await render_cart(cb, session, user)
+    await cb.answer("Товар удалён")
 
 
-@router.callback_query(F.data.startswith("cart:clear"))
-async def clear_cart(cb: CallbackQuery, session: AsyncSession, user):
-    orders = OrdersDAO(session)
-    await orders.clear_cart(user.id)
-    await session.commit()
+@router.callback_query(ClientCartClear.filter())
+async def clear_cart(cb: CallbackQuery, session: AsyncSession):
+    dao = OrdersDAO(session)
+    await dao.clear_cart(user_id=cb.from_user.id)
 
-    await render_catalog(cb, session)
+    await cb.answer("Корзина очищена")
+    await cb.message.edit_text("🧺 Корзина пуста")
 
+
+@router.callback_query(ClientCartCheckout.filter())
+async def checkout(cb: CallbackQuery):
+    await cb.message.edit_text("🚚 Выберите способ доставки")
+    await cb.answer()

@@ -1,28 +1,19 @@
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 
 
-def operator_main_menu(*, on_shift: bool) -> ReplyKeyboardMarkup:
-    """
-    Главное меню оператора.
-    Контракт:
-    - on_shift=True  → кнопки работы
-    - on_shift=False → только вход на смену
-    """
-
+def operator_main_menu_kb(on_shift: bool) -> ReplyKeyboardMarkup:
     if not on_shift:
         return ReplyKeyboardMarkup(
             keyboard=[
-                [KeyboardButton(text="🟢 Выйти на смену")],
-                [KeyboardButton(text="⬅️ Назад")],
+                [KeyboardButton(text="🟢 Начать смену")],
             ],
             resize_keyboard=True,
         )
 
     return ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="📦 Заказы")],
-            [KeyboardButton(text="⏸ Закрыть смену")],
+            [KeyboardButton(text="📦 Активные заказы")],
+            [KeyboardButton(text="🔴 Завершить смену")],
         ],
         resize_keyboard=True,
     )
-

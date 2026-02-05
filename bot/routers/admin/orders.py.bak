@@ -1,0 +1,300 @@
+from __future__ import annotations
+
+from aiogram import Router
+from aiogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from bot.filters.role import RoleFilter
+from bot.utils.safe_edit import safe_edit_text
+
+from bot.constants.callbacks_admin import (
+    AdminOrders,
+    AdminOrderForce,
+    BackMenu,
+)
+
+from bot.dao.orders_dao import OrdersDAO
+from bot.dao.order_items_dao import OrderItemsDAO
+from bot.dao.warehouses_dao import WarehousesDAO
+from bot.dao.users_dao import UsersDAO
+
+from bot.models.enums import OrderStatus
+
+
+PAGE_SIZE = 8
+
+router = Router(name="admin_orders")
+
+
+# ============================================================
+# 📋 ENTRY / СПИСОК / ПАГИНАЦИЯ / ФИЛЬТР
+# ============================================================
+
+@router.callback_query(RoleFilter("admin"), AdminOrders.filter())
+async def admin_orders_entry(
+    cb: CallbackQuery,
+    callback_data: AdminOrders,
+    session: AsyncSession,
+):
+    """
+    Универсальная точка входа:
+    - список заказов
+    - карточка заказа
+    - позиции заказа
+    """
+
+    # ---------- если запрошена карточка заказа ----------
+    if callback_data.order_id is not None:
+        if callback_data.view == "items":
+            await _order_items(cb, callback_data, session)
+        else:
+            await _order_card(cb, callback_data, session)
+        return
+
+    # ---------- иначе: список заказов ----------
+    page = callback_data.page
+    status = callback_data.status
+
+    orders_dao = OrdersDAO(session)
+    orders, total = await orders_dao.list_page(
+        page=page,
+        limit=PAGE_SIZE,
+        status=status,
+    )
+
+    rows: list[list[InlineKeyboardButton]] = []
+
+    for o in orders:
+        rows.append([
+            InlineKeyboardButton(
+                text=f"#{o.id} · {o.status}",
+                callback_data=AdminOrders(
+                    order_id=o.id,
+                ).pack(),
+            )
+        ])
+
+    # ---------- навигация ----------
+    nav_row = []
+
+    if page > 1:
+        nav_row.append(
+            InlineKeyboardButton(
+                text="⬅️",
+                callback_data=AdminOrders(
+                    page=page - 1,
+                    status=status,
+                ).pack(),
+            )
+        )
+
+    if page * PAGE_SIZE < total:
+        nav_row.append(
+            InlineKeyboardButton(
+                text="➡️",
+                callback_data=AdminOrders(
+                    page=page + 1,
+                    status=status,
+                ).pack(),
+            )
+        )
+
+    if nav_row:
+        rows.append(nav_row)
+
+    # ---------- фильтры ----------
+    rows.append([
+        InlineKeyboardButton(
+            text="🟢 Активные",
+            callback_data=AdminOrders(
+                page=1,
+                status=OrderStatus.ACTIVE,
+            ).pack(),
+        ),
+        InlineKeyboardButton(
+            text="💰 Оплаченные",
+            callback_data=AdminOrders(
+                page=1,
+                status=OrderStatus.PAID,
+            ).pack(),
+        ),
+    ])
+
+    rows.append([
+        InlineKeyboardButton(
+            text="❌ Закрытые",
+            callback_data=AdminOrders(
+                page=1,
+                status=OrderStatus.CANCELLED,
+            ).pack(),
+        ),
+        InlineKeyboardButton(
+            text="♻️ Все",
+            callback_data=AdminOrders(
+                page=1,
+                status=None,
+            ).pack(),
+        ),
+    ])
+
+    rows.append([
+        InlineKeyboardButton(
+            text="⬅️ Назад",
+            callback_data=BackMenu().pack(),
+        )
+    ])
+
+    await safe_edit_text(
+        cb.message,
+        text="📋 <b>Заказы</b>",
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=rows),
+        parse_mode="HTML",
+    )
+    await cb.answer()
+
+
+# ============================================================
+# 📦 КАРТОЧКА ЗАКАЗА
+# ============================================================
+
+async def _order_card(
+    cb: CallbackQuery,
+    data: AdminOrders,
+    session: AsyncSession,
+):
+    orders = OrdersDAO(session)
+    warehouses = WarehousesDAO(session)
+    users = UsersDAO(session)
+
+    order = await orders.get_by_id(data.order_id)
+    if not order:
+        await cb.answer("Заказ не найден", show_alert=True)
+        return
+
+    wh = await warehouses.get_by_id(order.warehouse_id) if order.warehouse_id else None
+    operator = await users.get_by_id(order.operator_id) if order.operator_id else None
+
+    text = (
+        f"📦 <b>Заказ #{order.id}</b>\n\n"
+        f"Статус: <b>{order.status}</b>\n"
+        f"Сумма: {order.total_price} ₽\n"
+        f"Метод: {order.delivery_method}\n"
+    )
+
+    if wh:
+        text += f"🏬 Склад: {wh.title}\n"
+    if operator:
+        text += f"👷 Оператор: {operator.id}\n"
+
+    text += f"\nСоздан: {order.created_at:%d.%m.%Y %H:%M}\n"
+
+    kb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="📦 Позиции заказа",
+                    callback_data=AdminOrders(
+                        order_id=order.id,
+                        view="items",
+                    ).pack(),
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🛑 Принудительно закрыть",
+                    callback_data=AdminOrderForce(
+                        order_id=order.id,
+                    ).pack(),
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="⬅️ Назад к списку",
+                    callback_data=AdminOrders(
+                        page=1,
+                        status=data.status,
+                    ).pack(),
+                ),
+            ],
+        ]
+    )
+
+    await safe_edit_text(
+        cb.message,
+        text=text,
+        reply_markup=kb,
+        parse_mode="HTML",
+    )
+    await cb.answer()
+
+
+# ============================================================
+# 📦 ПОЗИЦИИ ЗАКАЗА
+# ============================================================
+
+async def _order_items(
+    cb: CallbackQuery,
+    data: AdminOrders,
+    session: AsyncSession,
+):
+    items_dao = OrderItemsDAO(session)
+    rows = await items_dao.list_by_order(data.order_id)
+
+    if not rows:
+        await cb.answer("Позиции отсутствуют", show_alert=True)
+        return
+
+    text = "📦 <b>Позиции заказа</b>\n\n"
+    for r in rows:
+        text += (
+            f"{r.product.title}\n"
+            f"  {r.qty} × {r.price} ₽ = {r.qty * r.price} ₽\n\n"
+        )
+
+    kb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="⬅️ Назад к заказу",
+                    callback_data=AdminOrders(
+                        order_id=data.order_id,
+                    ).pack(),
+                ),
+            ]
+        ]
+    )
+
+    await safe_edit_text(
+        cb.message,
+        text=text,
+        reply_markup=kb,
+        parse_mode="HTML",
+    )
+    await cb.answer()
+
+
+# ============================================================
+# 🛑 FORCE CLOSE
+# ============================================================
+
+@router.callback_query(RoleFilter("admin"), AdminOrderForce.filter())
+async def admin_order_force_close(
+    cb: CallbackQuery,
+    callback_data: AdminOrderForce,
+    session: AsyncSession,
+):
+    dao = OrdersDAO(session)
+    await dao.force_status(
+        order_id=callback_data.order_id,
+        status=OrderStatus.CANCELLED,
+    )
+    await session.commit()
+
+    await cb.answer("Заказ закрыт", show_alert=True)
+
+    await _order_card(
+        cb,
+        AdminOrders(order_id=callback_data.order_id),
+        session,
+    )
+

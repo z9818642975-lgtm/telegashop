@@ -2,16 +2,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # bot/services/operator_orders.py
-from sqlalchemy.ext.asyncio import AsyncSession
-
-
 from bot.dao.operator_orders_dao import OperatorOrdersDAO
-
-
-
-
-
-
 
 
 class OperatorOrdersService:
@@ -39,6 +30,8 @@ class OperatorOrdersService:
 
 
         return await self.dao.accept(order_item_id, operator_id)
+
+
 
 
 

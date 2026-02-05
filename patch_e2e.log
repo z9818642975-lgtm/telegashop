@@ -1,0 +1,11 @@
+== E2E PATCH START ==
+Archive unpacked to bot17_e2e_patched
+OperatorShiftDAO found: C:\Users\1\project\bot17_e2e_patched\bot\dao\operator_shift_dao.py
+OperatorShiftDAO patched
+Replaced get_active_shift in C:\Users\1\project\bot17_e2e_patched\bot\dao\operator_shift_dao.py
+Replaced get_active_shift in C:\Users\1\project\bot17_e2e_patched\bot\routers\client\checkout.py
+Replaced get_active_shift in C:\Users\1\project\bot17_e2e_patched\bot\services\operator_service.py
+OK: is_active not found
+WARNING: confirm_payment handler not found
+== E2E PATCH END ==
+Force-removed get_active_shift definitions

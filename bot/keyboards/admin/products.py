@@ -1,37 +1,18 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from bot.models.product import Product
+# bot/keyboards/admin/products.py
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+from bot.constants.callbacks_admin import AdminProductCard
 
 
-def products_kb(products: list[Product]) -> InlineKeyboardMarkup:
-    keyboard = []
-
+def admin_products_kb(products: list) -> InlineKeyboardMarkup:
+    rows = []
     for p in products:
-        status = "🟢" if p.is_active else "⚫️"
-        keyboard.append(
+        rows.append(
             [
                 InlineKeyboardButton(
-                    text=f"{status} {p.title} ({p.base_price} ₽)",
-                    callback_data=f"admin:product:card:{p.id}",
+                    text=p.title,
+                    callback_data=AdminProductCard(product_id=p.id).pack(),
                 )
             ]
         )
-
-    keyboard.append(
-        [
-            InlineKeyboardButton(
-                text="➕ Добавить товар",
-                callback_data="admin:product:create",
-            )
-        ]
-    )
-    keyboard.append(
-        [
-            InlineKeyboardButton(
-                text="⬅️ Назад",
-                callback_data="admin:panel",
-            )
-        ]
-    )
-
-    return InlineKeyboardMarkup(inline_keyboard=keyboard)
-
+    return InlineKeyboardMarkup(inline_keyboard=rows)

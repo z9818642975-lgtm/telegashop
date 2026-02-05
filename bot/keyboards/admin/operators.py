@@ -1,31 +1,18 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from bot.models.user import User
+# bot/keyboards/admin/operators.py
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+from bot.constants.callbacks_admin import AdminOperatorToggle
 
 
-def operators_kb(operators: list[User]) -> InlineKeyboardMarkup:
-    keyboard: list[list[InlineKeyboardButton]] = []
-
+def admin_operators_kb(operators: list) -> InlineKeyboardMarkup:
+    rows = []
     for op in operators:
-        status = "🟢" if op.is_active else "⚫️"
-        name = f"tg:{op.tg_id}"
-
-        keyboard.append(
+        rows.append(
             [
                 InlineKeyboardButton(
-                    text=f"{status} {name}",
-                    callback_data=f"admin:operator:toggle:{op.id}",
+                    text=f"👤 {op.tg_id}",
+                    callback_data=AdminOperatorToggle(operator_id=op.id).pack(),
                 )
             ]
         )
-
-    keyboard.append(
-        [
-            InlineKeyboardButton(
-                text="⬅️ Назад",
-                callback_data="admin:panel",
-            )
-        ]
-    )
-
-    return InlineKeyboardMarkup(inline_keyboard=keyboard)
-
+    return InlineKeyboardMarkup(inline_keyboard=rows)

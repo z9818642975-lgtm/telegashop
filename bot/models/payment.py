@@ -1,18 +1,26 @@
+# bot/models/payment.py
 from __future__ import annotations
 
 from datetime import datetime
+from typing import TYPE_CHECKING
+
 from sqlalchemy import (
     BigInteger,
+    DateTime,
+    Enum,
+    ForeignKey,
     Integer,
     String,
-    DateTime,
-    ForeignKey,
-    Enum,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from bot.db.base import Base
 from bot.models.enums import PaymentMethod, PaymentStatus
+
+if TYPE_CHECKING:
+    from .bank_account import BankAccount
+    from .order import Order
+    from .payment import Payment
 
 
 class Payment(Base):
@@ -21,6 +29,7 @@ class Payment(Base):
     id: Mapped[int] = mapped_column(
         BigInteger,
         primary_key=True,
+        autoincrement=True,   # ✅ ВАЖНО
     )
 
     # ============================
@@ -29,14 +38,15 @@ class Payment(Base):
 
     order_id: Mapped[int] = mapped_column(
         ForeignKey("orders.id", ondelete="CASCADE"),
-        index=True,
         nullable=False,
+        unique=True,          # ✅ ВАЖНО (ONE-TO-ONE)
+        index=True,
     )
 
     order: Mapped["Order"] = relationship(
         "Order",
         back_populates="payment",
-        lazy="selectin",
+        lazy="joined",
     )
 
     bank_account_id: Mapped[int] = mapped_column(
@@ -44,7 +54,7 @@ class Payment(Base):
         nullable=False,
     )
 
-    bank_account = relationship(
+    bank_account: Mapped["BankAccount"] = relationship(
         "BankAccount",
         lazy="joined",
     )
@@ -103,4 +113,4 @@ class Payment(Base):
         DateTime,
         nullable=True,
     )
-
+# noqa: F821

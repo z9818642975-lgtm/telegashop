@@ -1,3 +1,4 @@
+# alembic/versions/0001_full_schema.py
 """full schema"""
 from alembic import op
 import sqlalchemy as sa

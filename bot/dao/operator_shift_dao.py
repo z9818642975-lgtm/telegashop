@@ -1,51 +1,22 @@
-from __future__ import annotations
-
+# bot/dao/operator_shift_dao.py
 from datetime import datetime, timedelta
 
 from sqlalchemy import select, update
-from sqlalchemy.ext.asyncio import AsyncSession
 
+from bot.dao.base import BaseDAO
 from bot.models.operator_shift import OperatorShift
 
 
-class OperatorShiftStateError(Exception):
-    """
-    Ошибка некорректного состояния смены
-    (например, попытка открыть вторую смену).
-    """
-    pass
-
-
-class OperatorShiftDAO:
-    """
-    DAO для операторских смен.
-
-    КАНОН МОДЕЛИ (зафиксировано):
-    --------------------------------
-    - оператор = активная OperatorShift
-    - склад как сущность НЕ используется
-    - все проверки доступа и SLA идут через смену
-    """
-
-    # ============================================================
-    # SHIFT TIMEOUTS — SOURCE OF TRUTH
-    # ============================================================
-
+class OperatorShiftDAO(BaseDAO):
     WARN_15_MINUTES = 15
     WARN_17_MINUTES = 17
     AUTO_CLOSE_MINUTES = 20
 
-    def __init__(self, session: AsyncSession):
-        self.session = session
-
-    # ============================================================
-    # ACTIVE
-    # ============================================================
+    # ────────────────
+    # BASIC OPERATIONS
+    # ────────────────
 
     async def get_active(self, operator_id: int) -> OperatorShift | None:
-        """
-        Возвращает активную смену оператора или None.
-        """
         res = await self.session.execute(
             select(OperatorShift).where(
                 OperatorShift.operator_id == operator_id,
@@ -54,59 +25,17 @@ class OperatorShiftDAO:
         )
         return res.scalar_one_or_none()
 
-    async def get_active_all(self) -> list[OperatorShift]:
-        """
-        Возвращает ВСЕ активные смены (для watcher / онлайна).
-        """
-        res = await self.session.execute(
-            select(OperatorShift)
-            .where(OperatorShift.ended_at.is_(None))
-            .order_by(OperatorShift.started_at)
-        )
-        return list(res.scalars().all())
-
-    async def is_on_shift(self, operator_id: int) -> bool:
-        """
-        Проверка: есть ли у оператора активная смена.
-        """
-        return await self.get_active(operator_id) is not None
-
-    # ============================================================
-    # LIFECYCLE
-    # ============================================================
-
-    async def start_shift(
-        self,
-        *,
-        operator_id: int,
-        pickup_address: str,
-    ) -> OperatorShift:
-        """
-        Открытие смены.
-        """
-        if await self.is_on_shift(operator_id):
-            raise OperatorShiftStateError("Operator already on shift")
-
-        now = datetime.utcnow()
-
+    async def start(self, operator_id: int, pickup_address: str) -> OperatorShift:
         shift = OperatorShift(
             operator_id=operator_id,
             pickup_address=pickup_address,
-            started_at=now,
-            last_activity_at=now,
-            warned_15=False,
-            warned_17=False,
-            warned_20=False,
+            started_at=datetime.utcnow(),
         )
-
         self.session.add(shift)
         await self.session.flush()
         return shift
 
-    async def stop_shift(self, *, operator_id: int) -> None:
-        """
-        Закрытие активной смены оператора.
-        """
+    async def stop(self, operator_id: int):
         await self.session.execute(
             update(OperatorShift)
             .where(
@@ -116,78 +45,43 @@ class OperatorShiftDAO:
             .values(ended_at=datetime.utcnow())
         )
 
-    async def stop_shift_by_id(self, *, shift_id: int) -> None:
-        """
-        Закрытие смены по ID (используется watcher'ом).
-        """
+    async def stop_by_id(self, shift_id: int, auto: bool = False):
         await self.session.execute(
             update(OperatorShift)
-            .where(
-                OperatorShift.id == shift_id,
-                OperatorShift.ended_at.is_(None),
-            )
-            .values(ended_at=datetime.utcnow())
-        )
-
-    # ============================================================
-    # HEARTBEAT
-    # ============================================================
-
-    async def touch(self, *, operator_id: int) -> None:
-        """
-        Обновление активности оператора.
-        """
-        now = datetime.utcnow()
-
-        await self.session.execute(
-            update(OperatorShift)
-            .where(
-                OperatorShift.operator_id == operator_id,
-                OperatorShift.ended_at.is_(None),
-            )
+            .where(OperatorShift.id == shift_id)
             .values(
-                last_activity_at=now,
-                warned_15=False,
-                warned_17=False,
-                warned_20=False,
+                ended_at=datetime.utcnow(),
+                auto_closed=auto,
             )
         )
 
-    # ============================================================
-    # MONITORING / WATCHER
-    # ============================================================
+    # ─────────────────────────
+    # WATCHER-SPECIFIC METHODS
+    # ─────────────────────────
 
-    async def get_stale_shifts(
-        self,
-        *,
-        inactive_minutes: int,
-    ) -> list[OperatorShift]:
+    async def get_active_older_than(self, minutes: int) -> list[OperatorShift]:
         """
-        Возвращает смены без активности дольше inactive_minutes.
+        Активные смены, которые длятся дольше N минут
         """
-        cutoff = datetime.utcnow() - timedelta(minutes=inactive_minutes)
+        border = datetime.utcnow() - timedelta(minutes=minutes)
 
         res = await self.session.execute(
             select(OperatorShift).where(
                 OperatorShift.ended_at.is_(None),
-                OperatorShift.last_activity_at < cutoff,
+                OperatorShift.started_at <= border,
             )
         )
-        return list(res.scalars().all())
+        return res.scalars().all()
 
-    async def mark_warned(self, *, shift_id: int, minutes: int) -> None:
-        """
-        Помечает смену как предупреждённую
-        (15 / 17 / 20 минут).
-        """
-        if minutes == self.WARN_15_MINUTES:
-            field = OperatorShift.warned_15
-        elif minutes == self.WARN_17_MINUTES:
-            field = OperatorShift.warned_17
-        elif minutes == self.AUTO_CLOSE_MINUTES:
-            field = OperatorShift.warned_20
-        else:
-            raise ValueError("Unsupported warning interval")
+    async def mark_warned(self, shift_id: int, level: int):
+        field = {
+            15: OperatorShift.warned_15,
+            17: OperatorShift.warned_17,
+            20: OperatorShift.warned_20,
+        }.get(level)
+
+        if not field:
+            return
 
         await self.session.execute(
             update(OperatorShift)

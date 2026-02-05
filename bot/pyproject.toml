@@ -1,0 +1,10 @@
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = ["F", "E", "I"]
+ignore = ["E501"]
+fix = true
+
+[tool.ruff.isort]
+combine-as-imports = true
+known-first-party = ["bot"]

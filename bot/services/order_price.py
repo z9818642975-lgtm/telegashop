@@ -1,37 +1,12 @@
 # bot/services/order_price.py
-PRICES = {
-    return PRICES[product] * qty + delivery_price
-# bot/services/order_price.py
-PRICES = {
+from decimal import Decimal
+from typing import Iterable
 
 
-    "мяу": 3500,
-
-
-    "кок": 11000,
-
-
-    "гаш": 1800,
-
-
-    "бош": 1800,
-
-
-    "экс": 1600,
-
-
-    "лир": 4000,
-
-
-}
-
-
-
-
-
-def calc_total(product: str, qty: int, delivery_price: int):
-
-
-    return PRICES[product] * qty + delivery_price
+def calculate_order_price(items: Iterable) -> Decimal:
+    total = Decimal("0")
+    for item in items:
+        total += Decimal(item.price) * item.qty
+    return total
 
 

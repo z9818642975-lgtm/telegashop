@@ -1,15 +1,9 @@
-# -*- coding: utf-8 -*-
+# bot/fsm/order_fsm.py
 # bot/fsm/order.py
 # bot/fsm/order.py
 
 
-from aiogram.fsm.state import StatesGroup, State
-
-
-
-
-
-
+from aiogram.fsm.state import State, StatesGroup
 
 
 class OrderFSM(StatesGroup):
@@ -25,6 +19,7 @@ class OrderFSM(StatesGroup):
 
 
     wait_check = State()
+
 
 
 

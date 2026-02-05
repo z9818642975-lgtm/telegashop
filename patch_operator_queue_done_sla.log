@@ -1,0 +1,8 @@
+== OPERATOR QUEUE + DONE + SLA PATCH START ==
+WRITE: .\bot\services\operator_queue_service.py
+PATCH: auto operator assign
+WRITE: .\bot\routers\operator\orders_done.py
+PATCH: OrdersDAO.get_active_by_operator
+WRITE: .\bot\services\sla_dashboard.py
+PATCH: SLA admin notify
+== OPERATOR QUEUE + DONE + SLA PATCH END ==

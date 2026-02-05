@@ -1,8 +1,7 @@
 # bot/fsm/admin_flow.py
-from aiogram.fsm.state import StatesGroup, State
+from aiogram.fsm.state import State, StatesGroup
 
 # bot/fsm/admin_flow.py
-from aiogram.fsm.state import StatesGroup, State
 
 
 
@@ -60,6 +59,7 @@ class AdminFSM(StatesGroup):
 
 
     tr_qty = State()
+
 
 
 

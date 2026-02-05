@@ -47,3 +47,5 @@ async def bootstrap_users(session: AsyncSession) -> None:
             tg_id=tg_id,
             role=UserRole.OPERATOR,
         )
+
+

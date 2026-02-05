@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# alembic/versions/cf560864011c_add_sku_to_products.py
 """
 add sku to products
 

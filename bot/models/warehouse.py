@@ -1,23 +1,17 @@
-# bot/models/warehouse.py
-from sqlalchemy import Integer, String, Boolean, ForeignKey
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 # bot/models/warehouse.py
-from sqlalchemy import Integer, String, Boolean, ForeignKey
+from sqlalchemy import Boolean, ForeignKey, Integer, String
 
-
+# bot/models/warehouse.py
 from sqlalchemy.orm import Mapped, mapped_column
-
-
-
-
 
 from bot.db.base import Base
 
-
-
-
-
-
+if TYPE_CHECKING:
+    pass
 
 
 class Warehouse(Base):
@@ -110,3 +104,6 @@ class Warehouse(Base):
 
 
 
+
+
+# noqa: F821

@@ -2,12 +2,15 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import String, DateTime, Text
+from sqlalchemy import DateTime, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from bot.db.base import Base
+
+if TYPE_CHECKING:
+    pass
 
 
 class AuditLog(Base):
@@ -28,3 +31,6 @@ class AuditLog(Base):
         nullable=False,
     )
 
+
+
+# noqa: F821

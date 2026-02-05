@@ -1,31 +1,33 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+# bot/keyboards/client/quantity.py
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+from bot.constants.callbacks_client import ClientCartOpen, ClientItemQty
 
 
-def quantity_kb(order_item_id: int) -> InlineKeyboardMarkup:
-    """
-    Клавиатура выбора количества товара.
-    Количество УСТАНАВЛИВАЕТСЯ (замена), не суммируется.
-    ❌ Без кнопки «Назад»
-    """
+def client_quantity_kb(item_id: int) -> InlineKeyboardMarkup:
+    rows = []
 
-    # 1–5
-    row1 = [
+    rows.append([
         InlineKeyboardButton(
-            text=str(i),
-            callback_data=f"client:item:qty:{order_item_id}:{i}"
+            text=str(q),
+            callback_data=ClientItemQty(item_id=item_id, qty=q).pack(),
         )
-        for i in range(1, 6)
-    ]
+        for q in range(1, 6)
+    ])
 
-    # 6–10
-    row2 = [
+    rows.append([
         InlineKeyboardButton(
-            text=str(i),
-            callback_data=f"client:item:qty:{order_item_id}:{i}"
+            text=str(q),
+            callback_data=ClientItemQty(item_id=item_id, qty=q).pack(),
         )
-        for i in range(6, 11)
-    ]
+        for q in range(6, 11)
+    ])
 
-    return InlineKeyboardMarkup(
-        inline_keyboard=[row1, row2]
-    )
+    rows.append([
+        InlineKeyboardButton(
+            text="⬅️ В корзину",
+            callback_data=ClientCartOpen().pack(),
+        )
+    ])
+
+    return InlineKeyboardMarkup(inline_keyboard=rows)

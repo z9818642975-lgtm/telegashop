@@ -1,0 +1,31 @@
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from bot.constants.callbacks import OperatorStatsCB
+
+
+def operator_stats_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="📅 Сегодня",
+                    callback_data=OperatorStatsCB(period="day").pack(),
+                ),
+                InlineKeyboardButton(
+                    text="📆 Неделя",
+                    callback_data=OperatorStatsCB(period="week").pack(),
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🗓 Месяц",
+                    callback_data=OperatorStatsCB(period="month").pack(),
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="↩️ Назад",
+                    callback_data=OperatorStatsCB(period="back").pack(),
+                )
+            ],
+        ]
+    )

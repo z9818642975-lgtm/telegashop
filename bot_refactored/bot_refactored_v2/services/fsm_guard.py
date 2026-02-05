@@ -1,3 +1,0 @@
-class FSMAbort(Exception):
-    pass
-

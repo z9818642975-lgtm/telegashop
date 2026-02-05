@@ -1,20 +1,10 @@
 # bot/services/pickup_flow.py
 from sqlalchemy.ext.asyncio import AsyncSession
 
-# bot/services/pickup_flow.py
-from sqlalchemy.ext.asyncio import AsyncSession
-
-
-from bot.models.order_item import OrderItem
-
-
 from bot.models.enums import OrderItemStatus
 
-
-
-
-
-
+# bot/services/pickup_flow.py
+from bot.models.order_item import OrderItem
 
 
 class PickupService:
@@ -51,6 +41,8 @@ class PickupService:
 
 
         await self.session.commit()
+
+
 
 
 

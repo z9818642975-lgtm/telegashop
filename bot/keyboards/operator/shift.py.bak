@@ -1,0 +1,21 @@
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from bot.constants.callbacks import OpShiftStart, OpShiftStop
+
+
+def operator_shift_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="▶️ Начать смену",
+                    callback_data=OpShiftStart().pack(),
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="⏹ Завершить смену",
+                    callback_data=OpShiftStop().pack(),
+                )
+            ],
+        ]
+    )

@@ -1,4 +1,5 @@
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+# bot/db/engine.py
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from bot.config import settings
 
@@ -12,3 +13,4 @@ async_session_maker = async_sessionmaker(
     engine,
     expire_on_commit=False,
 )
+

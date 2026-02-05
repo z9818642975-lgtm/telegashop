@@ -1,23 +1,13 @@
 # bot/services/chat_service.py
-from __future__ import annotations
-
 # bot/services/chat_service.py
 from __future__ import annotations
 
-
 from datetime import datetime
 
-
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-
-from sqlalchemy import select
-
-
 from bot.models.chat import Chat
-
-
-
 
 
 class ChatService:
@@ -59,7 +49,8 @@ class ChatService:
         chat = Chat(client_id=client_id, operator_id=operator_id, order_id=order_id, is_active=True)
 
 
-        self.s.add(chat); await self.s.flush()
+        self.s.add(chat)
+    await self.s.flush()
 
 
         await self.s.commit()
@@ -117,6 +108,7 @@ class ChatService:
 
 
         return chat
+
 
 
 

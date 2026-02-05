@@ -1,0 +1,29 @@
+from aiogram import Router, F
+from aiogram.types import Message
+
+router = Router(name="client_reply")
+
+
+@router.message(F.text == "📦 Каталог")
+async def client_catalog(message: Message):
+    await message.answer("📦 Каталог (в разработке)")
+
+
+@router.message(F.text == "🧺 Корзина")
+async def client_cart(message: Message):
+    await message.answer("🧺 Корзина (в разработке)")
+
+
+@router.message(F.text == "👤 Профиль")
+async def client_profile(message: Message):
+    await message.answer("👤 Профиль (в разработке)")
+
+
+@router.message(F.text == "❓ FAQ")
+async def client_faq(message: Message):
+    await message.answer("❓ FAQ (в разработке)")
+
+
+@router.message(F.text == "💬 Связь с оператором")
+async def client_support(message: Message):
+    await message.answer("💬 Связь с оператором (в разработке)")

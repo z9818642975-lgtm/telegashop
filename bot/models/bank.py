@@ -1,9 +1,15 @@
-# bot/models/bank.py
+from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+# bot/models/bank.py
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from bot.db.base import Base
+
+if TYPE_CHECKING:
+    pass
 
 
 class Bank(Base):
@@ -24,4 +30,4 @@ class Bank(Base):
 
     def __repr__(self) -> str:
         return f"<Bank id={self.id} name={self.name}>"
-
+# noqa: F821

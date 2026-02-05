@@ -1,11 +1,8 @@
 # bot/keyboards/client/main.py
-from aiogram.types import (
-    ReplyKeyboardMarkup,
-    KeyboardButton,
-)
+from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 
 
-def client_main_menu():
+def client_main_menu_kb() -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(
         keyboard=[
             [
@@ -21,6 +18,4 @@ def client_main_menu():
             ],
         ],
         resize_keyboard=True,
-        selective=True,
     )
-

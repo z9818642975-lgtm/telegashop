@@ -2,16 +2,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # bot/services/order_service.py
-from sqlalchemy.ext.asyncio import AsyncSession
-
-
 from bot.dao.orders_dao import OrdersDAO
-
-
 from bot.models.enums import OrderStatus
-
-
-
 
 
 class OrderService:
@@ -159,6 +151,8 @@ class OrderService:
 
 
         await session.commit()
+
+
 
 
 

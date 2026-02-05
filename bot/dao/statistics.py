@@ -1,17 +1,18 @@
+# bot/dao/statistics.py
 from __future__ import annotations
 
 from datetime import datetime, timedelta
 
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.models.order import Order
-from bot.models.user import User
-from bot.models.operator_shift import OperatorShift
-from bot.models.salary_accrual import SalaryAccrual
-from bot.models.payment import Payment
-from bot.models.warehouse import Warehouse
 from bot.models.enums import OrderStatus, PaymentStatus
+from bot.models.operator_shift import OperatorShift
+from bot.models.order import Order
+from bot.models.payment import Payment
+from bot.models.salary_accrual import SalaryAccrual
+from bot.models.user import User
+from bot.models.warehouse import Warehouse
 
 
 class StatisticsDAO:
@@ -305,4 +306,6 @@ class StatisticsDAO:
             {"date": day.date().isoformat(), "revenue": amount}
             for day, amount in rows.all()
         ]
+
+
 

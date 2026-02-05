@@ -1,0 +1,68 @@
+from aiogram import Router
+from aiogram.types import CallbackQuery
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from bot.db import async_session_maker
+from bot.constants.callbacks import (
+    ClientCartOpen,
+    ClientCartClear,
+    ClientItemQty,
+    ClientItemRemove,
+    ClientCartCheckout,
+)
+from bot.dao.orders_dao import OrdersDAO
+from bot.keyboards.client.cart import cart_kb
+from bot.middlewares.db import DBSessionMiddleware
+
+router = Router(name="client_cart")
+router.callback_query.middleware(
+    DBSessionMiddleware(async_session_maker)
+)
+
+
+@router.callback_query(ClientCartOpen.filter())
+async def cart_open(cb: CallbackQuery, session: AsyncSession):
+    order = await OrdersDAO(session).get_or_create_cart(cb.from_user.id)
+    await cb.message.edit_text(
+        order.render_text(),
+        reply_markup=cart_kb(order.items),
+    )
+    await cb.answer()
+
+
+@router.callback_query(ClientItemQty.filter())
+async def cart_item_qty(
+    cb: CallbackQuery,
+    callback_data: ClientItemQty,
+    session: AsyncSession,
+):
+    await OrdersDAO(session).set_item_qty(
+        tg_id=cb.from_user.id,
+        item_id=callback_data.item_id,
+        qty=callback_data.qty,
+    )
+    await cb.answer("Количество обновлено")
+
+
+@router.callback_query(ClientItemRemove.filter())
+async def cart_item_remove(
+    cb: CallbackQuery,
+    callback_data: ClientItemRemove,
+    session: AsyncSession,
+):
+    await OrdersDAO(session).remove_item(
+        tg_id=cb.from_user.id,
+        item_id=callback_data.item_id,
+    )
+    await cb.answer("Удалено")
+
+
+@router.callback_query(ClientCartClear.filter())
+async def cart_clear(cb: CallbackQuery, session: AsyncSession):
+    await OrdersDAO(session).clear_cart(cb.from_user.id)
+    await cb.answer("Корзина очищена")
+
+
+@router.callback_query(ClientCartCheckout.filter())
+async def cart_checkout(cb: CallbackQuery):
+    await cb.answer()

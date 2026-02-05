@@ -5,13 +5,8 @@
 
 
 
-from sqlalchemy.ext.asyncio import AsyncEngine
-
-
 from sqlalchemy import text
-
-
-
+from sqlalchemy.ext.asyncio import AsyncEngine
 
 
 async def run_bootstrap(engine: AsyncEngine) -> None:
@@ -33,6 +28,8 @@ async def run_bootstrap(engine: AsyncEngine) -> None:
 
 
             await conn.execute(text(f.read()))
+
+
 
 
 

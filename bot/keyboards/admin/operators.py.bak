@@ -1,0 +1,16 @@
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from bot.constants.callbacks import AdminOperatorToggle
+
+
+def admin_operators_kb(operators: list) -> InlineKeyboardMarkup:
+    rows = []
+    for op in operators:
+        rows.append(
+            [
+                InlineKeyboardButton(
+                    text=f"👤 {op.tg_id}",
+                    callback_data=AdminOperatorToggle(operator_id=op.id).pack(),
+                )
+            ]
+        )
+    return InlineKeyboardMarkup(inline_keyboard=rows)

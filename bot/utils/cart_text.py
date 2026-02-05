@@ -1,37 +1,20 @@
 # bot/utils/cart_text.py
-def build_cart_text(order) -> str:
+from decimal import Decimal
 
-# bot/utils/cart_text.py
-def build_cart_text(order) -> str:
 
+def build_cart_text(items) -> str:
+    if not items:
+        return "🧺 <b>Корзина пуста</b>"
 
     lines = ["🧺 <b>Ваша корзина:</b>\n"]
+    total = Decimal("0")
 
+    for item in items:
+        price = Decimal(item.price) * item.qty
+        total += price
+        lines.append(f"• {item.title} × {item.qty} = {price} ₽")
 
-
-
-
-    for item in order.items:
-
-
-        lines.append(
-
-
-            f"• {item.product.title} ×{item.qty} — {item.qty * item.product.base_price} ₽"
-
-
-        )
-
-
-
-
-
-    lines.append(f"\n💰 <b>Итого:</b> {order.total_price} ₽")
-
-
+    lines.append(f"\n<b>Итого:</b> {total} ₽")
     return "\n".join(lines)
-
-
-
 
 

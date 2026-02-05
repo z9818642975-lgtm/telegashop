@@ -1,0 +1,54 @@
+from aiogram import Router
+from aiogram.types import CallbackQuery
+
+from bot.constants.callbacks import (
+    CatalogOpen,
+    ProductOpen,
+)
+from bot.keyboards.client.quantity import quantity_kb
+
+router = Router()
+
+
+@router.callback_query(CatalogOpen.filter())
+async def catalog_open(cb: CallbackQuery):
+    await cb.answer()
+
+
+@router.callback_query(ProductOpen.filter())
+async def product_open(cb: CallbackQuery, callback_data: ProductOpen):
+    await cb.message.edit_reply_markup(
+        reply_markup=quantity_kb(item_id=callback_data.product_id)
+    )
+from aiogram import Router
+from aiogram.types import CallbackQuery
+
+from bot.constants.callbacks_client import CatalogOpen, ProductOpen
+from bot.constants.callbacks import 
+from bot.keyboards.client.catalog import client_catalog_kb
+
+router = Router(name="client_catalog")
+
+
+@router.callback_query(CatalogOpen.filter())
+async def catalog(cb: CallbackQuery):
+    await cb.message.edit_text(
+        "📚 Каталог товаров",
+        reply_markup=client_catalog_kb(),
+    )
+    await cb.answer()
+
+
+@router.callback_query(ProductOpen.filter())
+async def product_card(cb: CallbackQuery, callback_data: ProductOpen):
+    await cb.message.edit_text(
+        f"📦 Товар #{callback_data.product_id}",
+    )
+    await cb.answer()
+
+
+@router.callback_query(.filter())
+async def back_menu(cb: CallbackQuery):
+    await cb.message.edit_text("📦 Главное меню")
+    await cb.answer()
+

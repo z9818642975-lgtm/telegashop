@@ -5,32 +5,14 @@
 
 
 
-from aiogram import Router, F
-
-
+from aiogram import F, Router
 from aiogram.types import Message
-
-
+from aiogram.utils.text_decorations import html_decoration as hd
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-
-from sqlalchemy import select
-
-
-from aiogram.utils.text_decorations import html_decoration as hd
-
-
-
-
-
 from bot.filters.role import RoleFilter
-
-
 from bot.models.audit_log import AuditLog
-
-
-
-
 
 router = Router()
 
@@ -47,7 +29,7 @@ def safe(t: str) -> str:
 
 
 
-@router.message(RoleFilter("admin"), F.text == "🧾 Audit log")
+@router.message(RoleFilter("admin"), F.text == "А 🧾 Audit log")
 
 
 async def view_audit(message: Message, session: AsyncSession):
@@ -68,13 +50,16 @@ async def view_audit(message: Message, session: AsyncSession):
     text = "🧾 Последние действия:\n\n"
 
 
-    for l in logs:
+    for log in logs:
 
 
-        text += f"{l.actor_id}: {l.action} {l.entity} {l.entity_id}\n"
+        text += f"{log.actor_id}: {log.action} {log.entity} {log.entity_id}\n"
 
 
     await message.answer(safe(text), parse_mode="HTML")
+
+
+
 
 
 

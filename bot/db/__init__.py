@@ -1,3 +1,4 @@
+# bot/db/__init__.py
 from .base import Base
 from .engine import engine
 from .session import async_session_maker
@@ -7,4 +8,6 @@ __all__ = (
     "engine",
     "async_session_maker",
 )
+
+
 

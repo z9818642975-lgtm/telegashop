@@ -1,0 +1,45 @@
+from aiogram import Router
+from aiogram.types import CallbackQuery
+from sqlalchemy.ext.asyncio import AsyncSession
+from bot.db import async_session_maker
+
+from bot.constants.callbacks_operator import (
+    OperatorReady,
+    OperatorDeliverySent,
+)
+from bot.dao.orders_dao import OrdersDAO
+from bot.middlewares.db import DBSessionMiddleware
+from bot.db import async_session_maker
+
+router = Router()
+router.callback_query.middleware(DBSessionMiddleware(async_session_maker))
+
+
+@router.callback_query(OperatorReady.filter())
+async def operator_ready(
+    cb: CallbackQuery,
+    callback_data: OperatorReady,
+    session: AsyncSession,
+):
+    await OrderDAO.operator_ready(
+        session=session,
+        order_id=callback_data.order_id,
+        operator_tg_id=cb.from_user.id,
+    )
+    await cb.answer("Заказ принят")
+
+
+@router.callback_query(OperatorDeliverySent.filter())
+async def delivery_sent(
+    cb: CallbackQuery,
+    callback_data: OperatorDeliverySent,
+    session: AsyncSession,
+):
+    await OrderDAO.mark_delivery_sent(
+        session=session,
+        order_id=callback_data.order_id,
+    )
+    await cb.answer("Отправка отмечена")
+
+
+

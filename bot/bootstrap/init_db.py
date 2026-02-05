@@ -1,3 +1,4 @@
+# bot/bootstrap/init_db.py
 from __future__ import annotations
 
 import asyncio
@@ -6,14 +7,17 @@ import socket
 from pathlib import Path
 
 from sqlalchemy import text
-
-from bot.db import engine, async_session_maker, Base
-from bot.config import settings
-from bot.dao.users_dao import UsersDAO
-from bot.models.enums import UserRole
-from bot.bootstrap.users import bootstrap_users
+from sqlalchemy.ext.asyncio import AsyncConnection
 
 import bot.models  # noqa: F401
+from bot.bootstrap.users import bootstrap_users
+from bot.config import settings
+from bot.dao.users_dao import UsersDAO
+from bot.db.base import Base, engine
+from bot.db.session import async_session_maker
+from bot.models.enums import UserRole
+
+print("TABLES:", Base.metadata.tables.keys())
 
 logger = logging.getLogger("telegashop")
 
@@ -47,33 +51,35 @@ async def wait_for_db(
 
 async def exec_sql_file(conn, path: Path):
     if not path.exists():
-        logger.warning(f"⚠️ SQL file not found: {path}")
         return
 
     sql = path.read_text(encoding="utf-8")
-    for stmt in filter(None, map(str.strip, sql.split(";"))):
-        await conn.exec_driver_sql(stmt)
 
+    statements = []
+    buf = []
 
-async def recreate_order_cart_view(conn):
-    await conn.exec_driver_sql("DROP VIEW IF EXISTS order_cart_view")
-    await conn.exec_driver_sql(
-        """
-        CREATE VIEW order_cart_view AS
-        SELECT
-            o.id AS order_id,
-            o.client_id,
-            COUNT(oi.id) AS total_items,
-            COUNT(*) FILTER (WHERE oi.status = 'ACCEPTED') AS accepted_items,
-            COUNT(*) FILTER (WHERE oi.status = 'PAID')     AS paid_items,
-            COUNT(*) FILTER (WHERE oi.status = 'DONE')     AS done_items,
-            BOOL_AND(oi.status = 'DONE') AS is_completed
-        FROM orders o
-        JOIN order_items oi ON oi.order_id = o.id
-        GROUP BY o.id, o.client_id
-        """
-    )
+    for line in sql.splitlines():
+        if line.strip().endswith(";"):
+            buf.append(line.rstrip(";"))
+            statements.append("\n".join(buf))
+            buf = []
+        else:
+            buf.append(line)
 
+    for stmt in statements:
+        if stmt.strip():
+            await conn.exec_driver_sql(stmt)
+
+async def recreate_order_cart_view(conn: AsyncConnection) -> None:
+    sql_path = Path(__file__).parent / "order_cart_view.sql"
+
+    if not sql_path.exists():
+        raise RuntimeError("order_cart_view.sql not found")
+
+    sql = sql_path.read_text(encoding="utf-8")
+
+    # на случай если в sql уже есть DROP VIEW
+    await conn.execute(text(sql))
 
 # ============================================================
 # INIT DB
@@ -101,8 +107,9 @@ async def init_db() -> None:
         else:
             logger.info("🌱 Seed skipped (data exists)")
 
-        logger.info("👁 Recreating order_cart_view")
+        logger.info("👁 order_cart_view")
         await recreate_order_cart_view(conn)
+
 
         await conn.run_sync(Base.metadata.create_all)
 
@@ -130,3 +137,4 @@ async def init_db() -> None:
                 logger.info("👑 Admin created")
 
     logger.info("✅ DB bootstrap completed")
+

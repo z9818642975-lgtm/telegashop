@@ -1,0 +1,61 @@
+from aiogram import Router
+from aiogram.types import CallbackQuery, Message
+from aiogram.fsm.context import FSMContext
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from bot.db import async_session_maker
+from bot.constants.callbacks import (
+    ClientDeliveryPickup,
+    ClientDeliveryCourier,
+    ClientDeliveryPrice,
+)
+from bot.fsm.checkout_fsm import CheckoutFSM
+from bot.dao.orders_dao import OrdersDAO
+from bot.middlewares.db import DBSessionMiddleware
+
+router = Router(name="client_checkout")
+
+router.message.middleware(DBSessionMiddleware(async_session_maker))
+router.callback_query.middleware(DBSessionMiddleware(async_session_maker))
+
+
+@router.callback_query(ClientDeliveryPickup.filter())
+async def delivery_pickup(cb: CallbackQuery, state: FSMContext):
+    await state.update_data(delivery="pickup")
+    await state.set_state(CheckoutFSM.address)
+    await cb.message.answer("Опишите место самовывоза")
+    await cb.answer()
+
+
+@router.callback_query(ClientDeliveryCourier.filter())
+async def delivery_courier(cb: CallbackQuery, state: FSMContext):
+    await state.update_data(delivery="courier")
+    await state.set_state(CheckoutFSM.address)
+    await cb.message.answer("Введите адрес доставки")
+    await cb.answer()
+
+
+@router.callback_query(ClientDeliveryPrice.filter())
+async def delivery_price(
+    cb: CallbackQuery,
+    callback_data: ClientDeliveryPrice,
+):
+    await cb.answer(f"Выбран способ: {callback_data.method}")
+
+
+@router.message(CheckoutFSM.address)
+async def checkout_address(
+    msg: Message,
+    state: FSMContext,
+    session: AsyncSession,
+):
+    data = await state.get_data()
+
+    await OrdersDAO(session).set_delivery_address(
+        tg_id=msg.from_user.id,
+        address=msg.text,
+        delivery_method=data.get("delivery"),
+    )
+
+    await state.clear()
+    await msg.answer("Адрес сохранён. Продолжаем оформление заказа.")

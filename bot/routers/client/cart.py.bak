@@ -1,0 +1,50 @@
+from aiogram import Router
+from aiogram.types import CallbackQuery
+
+from bot.constants.callbacks_client import (
+    ClientCartOpen,
+    ClientCartClear,
+    ClientCartCheckout,
+    ClientItemQty,
+    ClientItemRemove,
+)
+from bot.constants.callbacks import BackCatalog
+from bot.keyboards.client.cart import client_cart_kb
+
+router = Router(name="client_cart")
+
+
+@router.callback_query(ClientCartOpen.filter())
+async def cart(cb: CallbackQuery):
+    await cb.message.edit_text(
+        "🛒 Ваша корзина",
+        reply_markup=client_cart_kb(),
+    )
+    await cb.answer()
+
+
+@router.callback_query(ClientItemQty.filter())
+async def change_qty(cb: CallbackQuery, callback_data: ClientItemQty):
+    await cb.answer(f"Qty → {callback_data.qty}")
+
+
+@router.callback_query(ClientItemRemove.filter())
+async def remove_item(cb: CallbackQuery, callback_data: ClientItemRemove):
+    await cb.answer(f"Удалён товар {callback_data.item_id}")
+
+
+@router.callback_query(ClientCartClear.filter())
+async def clear_cart(cb: CallbackQuery):
+    await cb.answer("Корзина очищена")
+
+
+@router.callback_query(ClientCartCheckout.filter())
+async def checkout(cb: CallbackQuery):
+    await cb.message.edit_text("🚚 Оформление заказа")
+    await cb.answer()
+
+
+@router.callback_query(BackCatalog.filter())
+async def back_catalog(cb: CallbackQuery):
+    await cb.message.edit_text("📚 Каталог")
+    await cb.answer()

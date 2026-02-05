@@ -1,45 +1,44 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from typing import Iterable
+# bot/keyboards/client/cart.py
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+from bot.constants.callbacks_client import (
+    CatalogOpen,
+    ClientCartCheckout,
+    ClientCartClear,
+    ClientItemRemove,
+)
 
 
-def cart_inline_kb(items: Iterable) -> InlineKeyboardMarkup:
-    keyboard: list[list[InlineKeyboardButton]] = []
+def client_cart_kb(items: list) -> InlineKeyboardMarkup:
+    rows: list[list[InlineKeyboardButton]] = []
 
     for item in items:
-        item_id = item.id
-
-        # 1–5
-        keyboard.append([
+        rows.append([
             InlineKeyboardButton(
-                text=str(i),
-                callback_data=f"client:item:qty:{item_id}:{i}"
-            )
-            for i in range(1, 6)
-        ])
-
-        # 6–10
-        keyboard.append([
-            InlineKeyboardButton(
-                text=str(i),
-                callback_data=f"client:item:qty:{item_id}:{i}"
-            )
-            for i in range(6, 11)
-        ])
-
-        # удалить
-        keyboard.append([
-            InlineKeyboardButton(
-                text="❌ Удалить",
-                callback_data=f"client:item:remove:{item_id}"
+                text=f"❌ {item.product.title} × {item.qty}",
+                callback_data=ClientItemRemove(item_id=item.id).pack(),
             )
         ])
 
-    # очистить корзину
-    keyboard.append([
+    if items:
+        rows.append([
+            InlineKeyboardButton(
+                text="🧹 Очистить корзину",
+                callback_data=ClientCartClear().pack(),
+            )
+        ])
+        rows.append([
+            InlineKeyboardButton(
+                text="✅ Оформить заказ",
+                callback_data=ClientCartCheckout().pack(),
+            )
+        ])
+
+    rows.append([
         InlineKeyboardButton(
-            text="🗑 Очистить корзину",
-            callback_data="client:cart:clear"
+            text="⬅️ В каталог",
+            callback_data=CatalogOpen().pack(),
         )
     ])
 
-    return InlineKeyboardMarkup(inline_keyboard=keyboard)
+    return InlineKeyboardMarkup(inline_keyboard=rows)

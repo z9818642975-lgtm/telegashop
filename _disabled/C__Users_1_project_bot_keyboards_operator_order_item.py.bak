@@ -1,0 +1,19 @@
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from bot.constants.callbacks import OperatorItemCB, OperatorReady
+
+
+def operator_item_actions_kb(item_id: int) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="✅ Принять",
+                    callback_data=OperatorItemCB(item_id=item_id).pack(),
+                ),
+                InlineKeyboardButton(
+                    text="🏁 Готово",
+                    callback_data=OperatorReady(order_id=item_id).pack(),
+                ),
+            ]
+        ]
+    )

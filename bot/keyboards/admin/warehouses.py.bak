@@ -1,0 +1,25 @@
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+
+def warehouses_kb(items: list) -> InlineKeyboardMarkup:
+    rows = []
+
+    for wh in items:
+        rows.append([
+            InlineKeyboardButton(
+                text=f"🏬 {wh.title}",
+                callback_data=AdminWarehouseSelectCB(
+                    warehouse_id=wh.id
+                ).pack(),
+            )
+        ])
+
+    rows.append([
+        InlineKeyboardButton(
+            text="⬅️ Назад",
+            callback_data=BackMenu().pack(),
+        )
+    ])
+
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+

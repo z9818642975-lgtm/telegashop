@@ -1,0 +1,48 @@
+from aiogram import Router
+from aiogram.types import CallbackQuery
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from bot.db import async_session_maker
+from bot.constants.callbacks import (
+    ClientPayBank,
+    ClientPaySBP,
+    ClientPaymentDone,
+    ClientPaymentCancel,
+)
+from bot.dao.orders_dao import OrdersDAO
+from bot.middlewares.db import DBSessionMiddleware
+from bot.services.notifier import Notifier
+
+router = Router(name="client_payment")
+
+router.callback_query.middleware(
+    DBSessionMiddleware(async_session_maker)
+)
+
+
+@router.callback_query(ClientPayBank.filter())
+async def pay_bank(
+    cb: CallbackQuery,
+    callback_data: ClientPayBank,
+):
+    await cb.answer(f"Выбран банк {callback_data.bank_id}")
+
+
+@router.callback_query(ClientPaySBP.filter())
+async def pay_sbp(cb: CallbackQuery):
+    await cb.answer("Выбран СБП")
+
+
+@router.callback_query(ClientPaymentDone.filter())
+async def payment_done(
+    cb: CallbackQuery,
+    session: AsyncSession,
+):
+    order = await OrdersDAO(session).mark_paid(cb.from_user.id)
+    await Notifier().order_paid(order.id)
+    await cb.answer("Платёж подтверждён")
+
+
+@router.callback_query(ClientPaymentCancel.filter())
+async def payment_cancel(cb: CallbackQuery):
+    await cb.answer("Оплата отменена")

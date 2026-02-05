@@ -1,0 +1,16 @@
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from bot.constants.callbacks import AdminBankToggle
+
+
+def admin_banks_kb(banks: list) -> InlineKeyboardMarkup:
+    rows = []
+    for b in banks:
+        rows.append(
+            [
+                InlineKeyboardButton(
+                    text=b.title,
+                    callback_data=AdminBankToggle(bank_id=b.id).pack(),
+                )
+            ]
+        )
+    return InlineKeyboardMarkup(inline_keyboard=rows)

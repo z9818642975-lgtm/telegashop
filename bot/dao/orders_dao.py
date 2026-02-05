@@ -1,121 +1,175 @@
 # bot/dao/orders_dao.py
-from sqlalchemy import select, delete
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from datetime import datetime, timedelta
 
-from bot.models.order import Order
-from bot.models.order_item import OrderItem
-from bot.models.enums import OrderStatus
+from sqlalchemy import select
+
+from bot.dao.base import BaseDAO
+from bot.dao.salary_dao import SalaryDAO
+from bot.models import Order, OrderStatus
 
 
-class OrdersDAO:
-    def __init__(self, session: AsyncSession):
-        self.session = session
+class OrdersDAO(BaseDAO):
 
-    # =========================================================
-    # CART (OrderStatus.NEW)
-    # =========================================================
-
-    async def get_cart(self, client_id: int) -> Order | None:
-        stmt = (
-            select(Order)
-            .options(
-                selectinload(Order.items)
-                .selectinload(OrderItem.product)
-            )
-            .where(
-                Order.client_id == client_id,
-                Order.status == OrderStatus.NEW,
-            )
-            .limit(1)
-        )
-        res = await self.session.execute(stmt)
-        return res.scalar_one_or_none()
+    # =====================================================
+    # CART
+    # =====================================================
 
     async def get_or_create_cart(self, client_id: int) -> Order:
-        order = await self.get_cart(client_id)
+        res = await self.session.execute(
+            select(Order).where(
+                Order.client_id == client_id,
+                Order.status == OrderStatus.CART,
+            )
+        )
+        order = res.scalar_one_or_none()
         if order:
             return order
 
         order = Order(
             client_id=client_id,
-            status=OrderStatus.NEW,
+            status=OrderStatus.CART,
         )
         self.session.add(order)
         await self.session.flush()
         return order
 
-    async def clear_cart(self, client_id: int) -> None:
-        order = await self.get_cart(client_id)
-        if not order:
-            return
+    # =====================================================
+    # CHECKOUT → PAYMENT
+    # =====================================================
 
-        await self.session.execute(
-            delete(OrderItem).where(
-                OrderItem.order_id == order.id
-            )
-        )
+    async def checkout(self, order_id: int, client_id: int) -> None:
+        order = await self.session.get(Order, order_id)
+
+        if not order or order.client_id != client_id:
+            raise ValueError("order not found")
+
+        if order.status != OrderStatus.CART:
+            raise ValueError("invalid state")
+
+        order.status = OrderStatus.WAITING_PAYMENT
         await self.session.flush()
 
-    # =========================================================
-    # ADD PRODUCT (IDEMPOTENT)
-    # =========================================================
+    # =====================================================
+    # PAYMENT PROOF (ЧЕК)
+    # =====================================================
 
-    async def add_product(
-        self,
-        *,
-        user_id: int,
-        product_id: int,
-        qty: int = 1,
-    ) -> OrderItem:
-        """
-        Идемпотентное добавление товара в корзину.
-
-        - если OrderItem уже есть → вернуть его
-        - qty НЕ увеличивается
-        - qty меняется ТОЛЬКО через item:qty
-        """
-
-        order = await self.get_or_create_cart(user_id)
-
-        res = await self.session.execute(
-            select(OrderItem).where(
-                OrderItem.order_id == order.id,
-                OrderItem.product_id == product_id,
-            )
-        )
-        item = res.scalar_one_or_none()
-
-        if item:
-            return item
-
-        item = OrderItem(
-            order_id=order.id,
-            product_id=product_id,
-            qty=qty,
-            price=item.product.base_price
-            if hasattr(item := None, "product") else None,
-        )
-
-        # ↑ если price у тебя проставляется иначе —
-        # оставь СВОЮ логику, это не влияет на идемпотентность
-
-        self.session.add(item)
-        await self.session.flush()
-        return item
-
-    # =========================================================
-    # STATUS
-    # =========================================================
-
-    async def set_status(
+    async def save_payment_proof(
         self,
         order_id: int,
-        status: OrderStatus,
+        file_id: str,
+        file_type: str,  # "photo" | "document"
     ) -> None:
-        res = await self.session.execute(
-            select(Order).where(Order.id == order_id)
-        )
-        order = res.scalar_one()
-        order.status = status
+        order = await self.session.get(Order, order_id)
+
+        if order.status != OrderStatus.WAITING_PAYMENT:
+            raise ValueError("invalid state")
+
+        order.payment_proof_file_id = file_id
+        order.payment_proof_type = file_type
+        order.status = OrderStatus.NEED_CHECK
+        order.payment_submitted_at = datetime.utcnow()
+
         await self.session.flush()
+
+    # =====================================================
+    # OPERATOR CONFIRMATION
+    # =====================================================
+
+    async def mark_paid(self, order_id: int) -> None:
+        order = await self.session.get(Order, order_id)
+
+        if order.status != OrderStatus.NEED_CHECK:
+            raise ValueError("invalid state")
+
+        order.status = OrderStatus.PAID
+        order.paid_at = datetime.utcnow()
+
+        await self.session.flush()
+
+    async def reject_payment(self, order_id: int) -> None:
+        order = await self.session.get(Order, order_id)
+
+        if order.status != OrderStatus.NEED_CHECK:
+            raise ValueError("invalid state")
+
+        order.status = OrderStatus.WAITING_PAYMENT
+        order.payment_proof_file_id = None
+        order.payment_proof_type = None
+
+        await self.session.flush()
+
+    # =====================================================
+    # OPERATOR FLOW
+    # =====================================================
+
+    async def assign_operator(self, order_id: int, operator_id: int) -> None:
+        order = await self.session.get(Order, order_id)
+
+        if order.status != OrderStatus.PAID:
+            raise ValueError("invalid state")
+
+        order.operator_id = operator_id
+        order.status = OrderStatus.IN_WORK
+        order.sla_deadline = datetime.utcnow() + timedelta(minutes=30)
+
+        await self.session.flush()
+
+    async def mark_ready(self, order_id: int, operator_id: int) -> None:
+        order = await self.session.get(Order, order_id)
+
+        if (
+            order.operator_id != operator_id
+            or order.status != OrderStatus.IN_WORK
+        ):
+            raise ValueError("invalid state")
+
+        order.status = OrderStatus.READY
+        await self.session.flush()
+
+    async def mark_done(self, order_id: int, operator_id: int) -> None:
+        order = await self.session.get(Order, order_id)
+
+        if (
+            order.operator_id != operator_id
+            or order.status != OrderStatus.READY
+        ):
+            raise ValueError("invalid state")
+
+        order.status = OrderStatus.DONE
+        order.completed_at = datetime.utcnow()
+
+        await self.session.flush()
+        salary_dao = SalaryDAO(self.session)
+        await salary_dao.create(
+            operator_id=order.operator_id,
+            amount=order.total_price,  # или % — по ТЗ
+            order_id=order.id,
+        )
+
+    # =====================================================
+    # SERVICE
+    # =====================================================
+
+    async def get_sla_expired(self, now: datetime) -> list[Order]:
+        res = await self.session.execute(
+            select(Order).where(
+                Order.status == OrderStatus.IN_WORK,
+                Order.sla_deadline < now,
+            )
+        )
+        return list(res.scalars())
+
+    async def get_active_order(self, client_id: int) -> Order | None:
+        res = await self.session.execute(
+            select(Order).where(
+                Order.client_id == client_id,
+                Order.status.in_(
+                    [
+                        OrderStatus.CART,
+                        OrderStatus.WAITING_PAYMENT,
+                        OrderStatus.NEED_CHECK,
+                    ]
+                ),
+            )
+        )
+        return res.scalar_one_or_none()

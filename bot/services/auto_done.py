@@ -1,7 +1,8 @@
 # bot/services/auto_done.py
 import asyncio
-from bot.db import async_session_maker
+
 from bot.dao.orders_dao import OrdersDAO
+from bot.db import async_session_maker
 from bot.models.enums import OrderStatus
 
 _running_done: set[int] = set()
@@ -27,4 +28,6 @@ async def _auto_done(order_id: int, delay_minutes: int):
         await session.commit()
 
     _running_done.discard(order_id)
+
+
 

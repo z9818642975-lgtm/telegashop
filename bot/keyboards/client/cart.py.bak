@@ -1,0 +1,42 @@
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from bot.constants.callbacks_client import (
+    ClientItemRemove,
+    ClientCartClear,
+    ClientCartCheckout,
+)
+
+from bot.constants.callbacks import BackCatalog
+
+def client_cart_kb(items: list) -> InlineKeyboardMarkup:
+    rows = []
+
+    for item in items:
+        rows.append([
+            InlineKeyboardButton(
+                text=f"❌ {item.product.title} × {item.qty}",
+                callback_data=ClientItemRemove(item_id=item.id).pack(),
+            )
+        ])
+
+    if items:
+        rows.append([
+            InlineKeyboardButton(
+                text="🧹 Очистить",
+                callback_data=ClientCartClear().pack(),
+            )
+        ])
+        rows.append([
+            InlineKeyboardButton(
+                text="✅ Оформить заказ",
+                callback_data=ClientCartCheckout().pack(),
+            )
+        ])
+
+    rows.append([
+        InlineKeyboardButton(
+            text="⬅️ В каталог",
+            callback_data=BackCatalog().pack(),
+        )
+    ])
+
+    return InlineKeyboardMarkup(inline_keyboard=rows)
